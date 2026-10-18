@@ -105,7 +105,7 @@
   function renderInspector() {
     if(current.step===5) { $('#inspector-content').innerHTML=reviewHTML(); return; }
     const module=activeModule();
-    $('#inspector-content').innerHTML=module?`<small class="kicker">${steps[current.step].en} · STEP ${String(current.step+1).padStart(2,'0')}</small>${Forms.render(module)}<p class="remove-note">选中纸片后：A / D 旋转，⌘D / Ctrl+D 复制，Delete / Backspace 拆下。⌘Z / Ctrl+Z 可撤销；输入时不会触发纸片操作。</p>`:`<small class="kicker">${steps[current.step].en}</small><h2>还没有${steps[current.step].name}纸片。</h2><div class="empty-inspector"><p>你可以添加这一类组件，也可以继续下一步，按自己的需要组合。</p><button data-action="add-type" data-type="${steps[current.step].type}">＋ 添加${steps[current.step].name}组件</button></div>`;
+    $('#inspector-content').innerHTML=module?`<small class="kicker">${steps[current.step].en} · STEP ${String(current.step+1).padStart(2,'0')}</small>${Forms.render(module)}<p class="remove-note">选中或抓起纸片时：A / D 旋转，⌘D / Ctrl+D 复制，Delete / Backspace 拆下。⌘Z / Ctrl+Z 可撤销；输入时不会触发纸片操作。</p>`:`<small class="kicker">${steps[current.step].en}</small><h2>还没有${steps[current.step].name}纸片。</h2><div class="empty-inspector"><p>你可以添加这一类组件，也可以继续下一步，按自己的需要组合。</p><button data-action="add-type" data-type="${steps[current.step].type}">＋ 添加${steps[current.step].name}组件</button></div>`;
     updateRuleFeedback();
   }
   function render() { renderNavigation(); renderBoard(); renderInspector(); }
@@ -271,7 +271,7 @@
     if(action==='next-step'){if(current.step===5)finish();else{const errors=stepErrors(steps[current.step].type);if(errors.length){toast(errors[0].message);renderInspector();}else goStep(current.step+1);}}
     if(action==='edit-module'||action==='select-module'){if(!preview)chooseModule(id,{edit:action==='edit-module'});}
     if(action==='tidy')mutate(()=>layoutTable(true),'已把纸片重新铺齐；可以继续自由摆放。');
-    if(action==='preview'){flushEdit();clearPaperSelection();preview=!preview;document.body.classList.toggle('card-preview',preview);button.textContent=preview?'返回组合编辑':'预览整卡';$('#assembly-caption').textContent=preview?'':'拖动纸面摆放 · 选中后 A / D 旋转 · ⌘D / Ctrl+D 复制 · Delete 拆下';layoutTable();}
+    if(action==='preview'){flushEdit();clearPaperSelection();preview=!preview;document.body.classList.toggle('card-preview',preview);button.textContent=preview?'返回组合编辑':'预览整卡';$('#assembly-caption').textContent=preview?'':'拖动纸面摆放 · 选中或抓起时 A / D 旋转 · ⌘D / Ctrl+D 复制 · Delete 拆下';layoutTable();}
     if(action==='library'){flushEdit();persist();renderLibrary();$('#library-dialog').showModal();}
     if(action==='new')createCharacter(false);
     if(action==='sample')createCharacter(true);
@@ -299,14 +299,19 @@
   });
   document.addEventListener('blur',event=>{if(event.target.matches('[data-path]')){normalizeField(event.target);flushEdit();}},true);
   document.addEventListener('keydown',event=>{
-    if(event.isComposing||event.target.closest('input,textarea,select,[contenteditable]:not([contenteditable="false"]),[role="textbox"],.inspector')||$('dialog[open]')||preview||drag)return;
+    if(event.isComposing||$('dialog[open]')||preview)return;
     const command=event.metaKey||event.ctrlKey;
+    const rotation=!command&&!event.altKey&&(event.key.toLowerCase()==='a'||event.key.toLowerCase()==='d');
+    // Pointer capture can leave keyboard focus in the inspector or on another paper.
+    // Rotate the held paper in place; rendering it again would release the grip.
+    if(drag){if(rotation){event.preventDefault();rotateHeldPaper(event.key.toLowerCase()==='a'?-3:3);}return;}
+    if(event.target.closest('input,textarea,select,[contenteditable]:not([contenteditable="false"]),[role="textbox"],.inspector'))return;
     if(command&&event.key.toLowerCase()==='z'&&!event.shiftKey&&!event.altKey){event.preventDefault();undo();return;}
     if(event.key==='Escape'){clearPaperSelection();return;}
     if(!selectionVisible||!activeModule()||event.altKey)return;
     const focusedPaper=event.target.closest('.paper-piece');
     if(focusedPaper&&focusedPaper.dataset.moduleId!==selectedId)return;
-    if(!command&&(event.key.toLowerCase()==='a'||event.key.toLowerCase()==='d')){event.preventDefault();rotateModule(selectedId,event.key.toLowerCase()==='a'?-3:3);return;}
+    if(rotation){event.preventDefault();rotateModule(selectedId,event.key.toLowerCase()==='a'?-3:3);return;}
     if(command&&event.key.toLowerCase()==='d'&&!event.shiftKey){event.preventDefault();if(!event.repeat)duplicateModule(selectedId);return;}
     if(!command&&!event.shiftKey&&(event.key==='Delete'||event.key==='Backspace')){event.preventDefault();if(!event.repeat)removeModule(selectedId);}
   });
@@ -323,20 +328,35 @@
     const rect=$('#paper-board').getBoundingClientRect(),grip=rotatePoint(state.grip.x*scale,state.grip.y*scale,angle);
     return {x:clamp(state.pointerX-rect.left-state.w/2-grip.x,0,Math.max(0,rect.width-state.w)),y:clamp(state.pointerY-rect.top-state.h/2-grip.y,0,rect.width*30)};
   }
-  function animateHeldPaper(){
-    if(!drag?.started)return;
-    const reduced=motion()==='auto';
-    drag.angle+=(drag.targetAngle-drag.angle)*.2;
-    drag.targetAngle+=(drag.original.angle-drag.targetAngle)*.07;
-    drag.scale+=(1.025-drag.scale)*.22;
-    if(reduced){drag.angle=drag.original.angle;drag.scale=1;}
-    if(drag.pointerY<65)window.scrollBy(0,-Math.min(12,(65-drag.pointerY)*.25));
-    else if(drag.pointerY>innerHeight-95)window.scrollBy(0,Math.min(12,(drag.pointerY-innerHeight+95)*.25));
+  function placeHeldPaper() {
     const position=pointerPosition(drag,drag.angle,drag.scale);
     drag.source.style.transform=tableTransform(position.x,position.y,drag.angle,drag.scale);
     const board=$('#paper-board'),needed=position.y+drag.h+100;
     if(needed>board.offsetHeight)board.style.height=needed+'px';
+  }
+  function animateHeldPaper(){
+    if(!drag?.started)return;
+    const reduced=motion()==='auto';
+    drag.angle+=(drag.targetAngle-drag.angle)*.2;
+    drag.targetAngle+=(drag.baseAngle-drag.targetAngle)*.07;
+    drag.scale+=(1.025-drag.scale)*.22;
+    if(reduced){drag.angle=drag.baseAngle;drag.scale=1;}
+    if(drag.pointerY<65)window.scrollBy(0,-Math.min(12,(65-drag.pointerY)*.25));
+    else if(drag.pointerY>innerHeight-95)window.scrollBy(0,Math.min(12,(drag.pointerY-innerHeight+95)*.25));
+    placeHeldPaper();
     tableFrame=requestAnimationFrame(animateHeldPaper);
+  }
+  function liftHeldPaper() {
+    if(drag.started)return;
+    drag.started=true;drag.module.pose.z=frontZ();drag.source.style.zIndex=String(drag.module.pose.z);
+    drag.source.classList.add('paper-lifted');drag.source.setAttribute('aria-grabbed','true');document.body.classList.add('is-dragging');
+    announce('纸片已拿起，可以自由摆放和叠压，按 A / D 旋转。');animateHeldPaper();
+  }
+  function rotateHeldPaper(amount) {
+    const angle=clamp(drag.baseAngle+amount,-15,15),delta=angle-drag.baseAngle;
+    drag.baseAngle=angle;drag.rotated=true;
+    drag.angle=clamp(drag.angle+delta,-15,15);drag.targetAngle=clamp(drag.targetAngle+delta,-15,15);
+    liftHeldPaper();placeHeldPaper();announce('已转动手中的纸片，松开鼠标即可放下。');
   }
   document.addEventListener('pointerdown',event=>{
     const source=event.target.closest('.paper-piece');if(!source||event.button!==0||preview)return;
@@ -346,7 +366,7 @@
     const board=$('#paper-board').getBoundingClientRect(),w=source.offsetWidth,h=source.offsetHeight;
     const x=module.pose.x/100*board.width,y=module.pose.y/100*board.width;
     const grip=rotatePoint(event.clientX-board.left-x-w/2,event.clientY-board.top-y-h/2,-module.pose.angle);
-    drag={id:module.id,module,source,handle:source,pointerId:event.pointerId,original:clone(module.pose),snapshot:clone(current),w,h,grip,startX:event.clientX,startY:event.clientY,pointerX:event.clientX,pointerY:event.clientY,lastX:event.clientX,lastTime:performance.now(),started:false,angle:module.pose.angle,targetAngle:module.pose.angle,scale:1};
+    drag={id:module.id,module,source,handle:source,pointerId:event.pointerId,original:clone(module.pose),snapshot:clone(current),w,h,grip,startX:event.clientX,startY:event.clientY,pointerX:event.clientX,pointerY:event.clientY,lastX:event.clientX,lastTime:performance.now(),started:false,rotated:false,baseAngle:module.pose.angle,angle:module.pose.angle,targetAngle:module.pose.angle,scale:1};
     drag.handle.setPointerCapture(event.pointerId);
   });
   document.addEventListener('pointermove',event=>{
@@ -354,13 +374,9 @@
     drag.pointerX=event.clientX;drag.pointerY=event.clientY;
     if(!drag.started&&Math.hypot(event.clientX-drag.startX,event.clientY-drag.startY)<4)return;
     event.preventDefault();
-    if(!drag.started){
-      drag.started=true;drag.module.pose.z=frontZ();drag.source.style.zIndex=String(drag.module.pose.z);
-      drag.source.classList.add('paper-lifted');drag.source.setAttribute('aria-grabbed','true');document.body.classList.add('is-dragging');
-      announce('纸片已拿起，可以自由摆放和叠压。');animateHeldPaper();
-    }
+    liftHeldPaper();
     const now=performance.now(),velocity=(event.clientX-drag.lastX)/Math.max(8,now-drag.lastTime);
-    drag.targetAngle=clamp(drag.original.angle+velocity*2.4,-12,12);drag.lastX=event.clientX;drag.lastTime=now;
+    drag.targetAngle=clamp(drag.baseAngle+velocity*2.4,-15,15);drag.lastX=event.clientX;drag.lastTime=now;
   },{passive:false});
   function endDrag(event,cancelled=false){
     if(!drag||event.pointerId!==drag.pointerId)return;const ended=drag;
@@ -373,7 +389,7 @@
       if(cancelled)ended.module.pose=ended.original;
       else{
         remember(ended.snapshot);
-        const angle=clamp(ended.original.angle+(ended.pointerX-ended.startX)*.006,-15,15),position=pointerPosition(ended,angle,1),width=$('#paper-board').clientWidth;
+        const angle=ended.rotated?ended.baseAngle:clamp(ended.baseAngle+(ended.pointerX-ended.startX)*.006,-15,15),position=pointerPosition(ended,angle,1),width=$('#paper-board').clientWidth;
         ended.module.pose={x:position.x/width*100,y:position.y/width*100,angle,z:ended.module.pose.z};
         selectedId=ended.id;selectionVisible=true;current.step=steps.findIndex(step=>step.type===ended.module.type);current.status='draft';
       }
