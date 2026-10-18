@@ -77,7 +77,7 @@
   }
   function pieceHTML(module) {
     const selected=selectionVisible&&module.id===selectedId;
-    return `<article class="paper-piece ${selected?'selected':''}" data-module-id="${module.id}" data-width="${module.width}" tabindex="0" role="group" aria-label="${esc(module.title)}纸雕组件" aria-describedby="assembly-caption" aria-keyshortcuts="ArrowLeft ArrowRight Meta+d Control+d Delete Backspace">
+    return `<article class="paper-piece ${selected?'selected':''}" data-module-id="${module.id}" data-width="${module.width}" tabindex="0" role="group" aria-label="${esc(module.title)}纸雕组件" aria-describedby="assembly-caption" aria-keyshortcuts="A D Meta+d Control+d Delete Backspace">
       <button class="piece-edit-button" data-action="edit-module" aria-label="填写${esc(module.title)}组件" title="填写" tabindex="${selected?0:-1}"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15.5 4.5 4 4M4 20l4.8-1.1L20 7.7a2.8 2.8 0 0 0-4-4L4.9 15zM5 15l4 4"/></svg></button>
       <div class="piece-content" data-action="select-module">${Cards.render(module,{selected,stepActive:module.type===steps[current.step].type})}</div>
     </article>`;
@@ -105,7 +105,7 @@
   function renderInspector() {
     if(current.step===5) { $('#inspector-content').innerHTML=reviewHTML(); return; }
     const module=activeModule();
-    $('#inspector-content').innerHTML=module?`<small class="kicker">${steps[current.step].en} · STEP ${String(current.step+1).padStart(2,'0')}</small>${Forms.render(module)}<p class="remove-note">选中纸片后：← → 旋转，⌘D / Ctrl+D 复制，Delete / Backspace 拆下。⌘Z / Ctrl+Z 可撤销；输入时不会触发纸片操作。</p>`:`<small class="kicker">${steps[current.step].en}</small><h2>还没有${steps[current.step].name}纸片。</h2><div class="empty-inspector"><p>你可以添加这一类组件，也可以继续下一步，按自己的需要组合。</p><button data-action="add-type" data-type="${steps[current.step].type}">＋ 添加${steps[current.step].name}组件</button></div>`;
+    $('#inspector-content').innerHTML=module?`<small class="kicker">${steps[current.step].en} · STEP ${String(current.step+1).padStart(2,'0')}</small>${Forms.render(module)}<p class="remove-note">选中纸片后：A / D 旋转，⌘D / Ctrl+D 复制，Delete / Backspace 拆下。⌘Z / Ctrl+Z 可撤销；输入时不会触发纸片操作。</p>`:`<small class="kicker">${steps[current.step].en}</small><h2>还没有${steps[current.step].name}纸片。</h2><div class="empty-inspector"><p>你可以添加这一类组件，也可以继续下一步，按自己的需要组合。</p><button data-action="add-type" data-type="${steps[current.step].type}">＋ 添加${steps[current.step].name}组件</button></div>`;
     updateRuleFeedback();
   }
   function render() { renderNavigation(); renderBoard(); renderInspector(); }
@@ -271,7 +271,7 @@
     if(action==='next-step'){if(current.step===5)finish();else{const errors=stepErrors(steps[current.step].type);if(errors.length){toast(errors[0].message);renderInspector();}else goStep(current.step+1);}}
     if(action==='edit-module'||action==='select-module'){if(!preview)chooseModule(id,{edit:action==='edit-module'});}
     if(action==='tidy')mutate(()=>layoutTable(true),'已把纸片重新铺齐；可以继续自由摆放。');
-    if(action==='preview'){flushEdit();clearPaperSelection();preview=!preview;document.body.classList.toggle('card-preview',preview);button.textContent=preview?'返回组合编辑':'预览整卡';$('#assembly-caption').textContent=preview?'':'拖动纸面摆放 · 选中后 ← → 旋转 · ⌘D / Ctrl+D 复制 · Delete 拆下';layoutTable();}
+    if(action==='preview'){flushEdit();clearPaperSelection();preview=!preview;document.body.classList.toggle('card-preview',preview);button.textContent=preview?'返回组合编辑':'预览整卡';$('#assembly-caption').textContent=preview?'':'拖动纸面摆放 · 选中后 A / D 旋转 · ⌘D / Ctrl+D 复制 · Delete 拆下';layoutTable();}
     if(action==='library'){flushEdit();persist();renderLibrary();$('#library-dialog').showModal();}
     if(action==='new')createCharacter(false);
     if(action==='sample')createCharacter(true);
@@ -306,7 +306,7 @@
     if(!selectionVisible||!activeModule()||event.altKey)return;
     const focusedPaper=event.target.closest('.paper-piece');
     if(focusedPaper&&focusedPaper.dataset.moduleId!==selectedId)return;
-    if(!command&&(event.key==='ArrowLeft'||event.key==='ArrowRight')){event.preventDefault();rotateModule(selectedId,event.key==='ArrowLeft'?-3:3);return;}
+    if(!command&&(event.key.toLowerCase()==='a'||event.key.toLowerCase()==='d')){event.preventDefault();rotateModule(selectedId,event.key.toLowerCase()==='a'?-3:3);return;}
     if(command&&event.key.toLowerCase()==='d'&&!event.shiftKey){event.preventDefault();if(!event.repeat)duplicateModule(selectedId);return;}
     if(!command&&!event.shiftKey&&(event.key==='Delete'||event.key==='Backspace')){event.preventDefault();if(!event.repeat)removeModule(selectedId);}
   });
