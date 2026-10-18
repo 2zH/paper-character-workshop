@@ -1,0 +1,114 @@
+/* Optional tactile feedback; load after paper.css. No layout dimensions change. */
+.paper-card {
+  --paper-light-x: 34%;
+  --paper-light-y: 25%;
+  --paper-light-strength: .055;
+}
+
+/* Only a host-supplied, masked top-paper path receives the light. */
+.paper-card [data-paper-sheen] {
+  pointer-events: none;
+  opacity: var(--paper-light-strength, .055);
+}
+
+:is(.bench-tools button, .study-tools button, .study-swatch,
+  .reference-link, dialog button, .level-value, .star-column button) {
+  transition: scale 110ms ease-out, background-color 140ms ease-out,
+    border-color 140ms ease-out, color 140ms ease-out;
+}
+
+:is(.bench-tools button, .study-tools button, .study-swatch,
+  .reference-link, dialog button, .level-value, .star-column button):active:not(:disabled) {
+  scale: .96;
+}
+
+.equipment-drawing, .tiny-portrait {
+  transition: scale 110ms ease-out, filter 250ms ease-out, opacity 250ms ease-out;
+}
+
+.paper-card [data-paper-pressed] {
+  scale: .96;
+}
+
+.paper-card .hole-hit:active {
+  background: #68472c24;
+  box-shadow: inset 0 1px 2px #38261655;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .bench-tools button:hover:not(:disabled) {
+    border-color: #b79a708c;
+    background-color: #99815c2c;
+  }
+
+  .study-tools button:hover:not(:disabled) {
+    border-color: #c2a57a80;
+    background-color: #b2996e26;
+  }
+
+  dialog button:hover:not(:disabled) {
+    color: #44311f;
+    background-color: #b6986740;
+  }
+
+  dialog footer button:hover:not(:disabled) {
+    color: #fff0cd;
+    background-color: #705537;
+  }
+
+  .reference-link:hover {
+    color: #e1c7a0;
+    border-color: #b79a708c;
+  }
+
+  .paper-card .gear-hit:hover {
+    background: #6c4c2210;
+    box-shadow: inset 0 0 0 1px #76533388;
+  }
+
+  .paper-card .avatar-hit:hover {
+    background: #6c4c220b;
+    outline: 1px dashed #76533388;
+    outline-offset: -3px;
+  }
+
+  .paper-card .hole-hit:hover {
+    outline: 1px solid #7653339c;
+    outline-offset: 1px;
+  }
+
+  .paper-card .hole-hit:focus-visible {
+    outline: 2px solid #825943;
+    outline-offset: 2px;
+  }
+
+  .paper-card :is(.level-value, .star-column button):hover {
+    color: #923f3e;
+    background-color: #78522d10;
+  }
+}
+
+/* The primary script owns the deliberate reveal; do not add drift to it. */
+.paper-card.lifted {
+  rotate: none !important;
+}
+
+@media (hover: none), (pointer: coarse), (prefers-reduced-motion: reduce) {
+  .paper-card {
+    rotate: none !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :is(.bench-tools button, .study-tools button, .study-swatch,
+    .reference-link, dialog button, .level-value, .star-column button,
+    .equipment-drawing, .tiny-portrait) {
+    transition: none;
+  }
+
+  :is(.bench-tools button, .study-tools button, .study-swatch,
+    .reference-link, dialog button, .level-value, .star-column button):active,
+  .paper-card [data-paper-pressed] {
+    scale: none;
+  }
+}
