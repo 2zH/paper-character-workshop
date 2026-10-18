@@ -15,7 +15,7 @@
   ];
   const libraryDescriptions = {identity:'人物立绘、姓名、年龄与职业。',attributes:'自由填写属性数值，可选自定义规则校验。',skills:'自由记录技能数值，可选自定义规则校验。',equipment:'手绘物品窗口与可扩展行囊。',background:'有横线的故事笺，写下角色牵挂。'};
   const symbols = {identity:'♢',attributes:'◌',skills:'✧',equipment:'⌑',background:'✎'};
-  let characters = [], current, selectedId, preview = false, undoStack = [], editSession = null, toastTimer, saveTimer, saveFailed = false;
+  let characters = [], current, selectedId, selectionVisible = false, preview = false, undoStack = [], editSession = null, toastTimer, saveTimer, saveFailed = false;
   let loadNotice = '';
   try {
     const raw = localStorage.getItem(STORAGE);
@@ -75,18 +75,21 @@
     $('#next-step').disabled=current.step===5&&!validation.valid;
     $('#undo-button').disabled=undoStack.length===0;
   }
-  function pieceHTML(module,index) {
-    return `<article class="paper-piece ${module.id===selectedId?'selected':''}" data-module-id="${module.id}" data-width="${module.width}" aria-label="${esc(module.title)}纸雕组件">
-      <div class="piece-toolbar"><div class="piece-toolbar-head"><span class="piece-label">${String(index+1).padStart(2,'0')} / ${esc(module.title||M.TITLES[module.type])}</span><button class="width-switch" data-action="toggle-width" aria-label="将${esc(module.title)}组件改为${module.width==='full'?'半张并排':'整行宽度'}">↔ ${module.width==='full'?'改为半张':'铺满整行'}</button></div><div class="piece-tools">
-        <button class="drag-handle" data-action="drag" aria-label="拖动${esc(module.title)}组件；也可按方向键移动" title="拿起纸片，自由摆放；方向键微调位置">⠿ 拿起</button>
-        <button data-action="edit-module" aria-label="编辑${esc(module.title)}组件" title="填写">✎ 填写</button>
-        <button data-action="duplicate-module" aria-label="复制${esc(module.title)}组件" title="复制为独立纸片">⧉ 复制</button>
-        <button data-action="remove-module" aria-label="拆下${esc(module.title)}组件" title="拆下后可撤销">× 拆下</button>
-        <button class="optional-tool" data-action="rotate-left" aria-label="逆时针旋转${esc(module.title)}组件" title="向左转一点">↶</button>
-        <button class="optional-tool" data-action="rotate-right" aria-label="顺时针旋转${esc(module.title)}组件" title="向右转一点">↷</button>
-      </div></div><div class="piece-content" data-action="select-module">${Cards.render(module,{selected:module.id===selectedId,stepActive:module.type===steps[current.step].type})}</div>
+  function pieceHTML(module) {
+    const selected=selectionVisible&&module.id===selectedId;
+    return `<article class="paper-piece ${selected?'selected':''}" data-module-id="${module.id}" data-width="${module.width}" tabindex="0" role="group" aria-label="${esc(module.title)}纸雕组件" aria-describedby="assembly-caption" aria-keyshortcuts="ArrowLeft ArrowRight Meta+d Control+d Delete Backspace">
+      <button class="piece-edit-button" data-action="edit-module" aria-label="填写${esc(module.title)}组件" title="填写" tabindex="${selected?0:-1}"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15.5 4.5 4 4M4 20l4.8-1.1L20 7.7a2.8 2.8 0 0 0-4-4L4.9 15zM5 15l4 4"/></svg></button>
+      <div class="piece-content" data-action="select-module">${Cards.render(module,{selected,stepActive:module.type===steps[current.step].type})}</div>
     </article>`;
   }
+  function syncPaperSelection() {
+    document.querySelectorAll('.paper-piece').forEach(el=>{
+      const selected=selectionVisible&&el.dataset.moduleId===selectedId;
+      el.classList.toggle('selected',selected);el.querySelector('.piece-edit-button').tabIndex=selected?0:-1;
+    });
+  }
+  function clearPaperSelection() { selectionVisible=false;syncPaperSelection();if(document.activeElement?.closest('.paper-piece'))document.activeElement.blur(); }
+  function focusPaper() { document.querySelector(`[data-module-id="${selectedId}"]`)?.focus({preventScroll:true}); }
   function renderBoard() {
     $('#paper-board').innerHTML=current.modules.length?current.modules.map(pieceHTML).join(''):`<div class="empty-board"><h2>桌上，还是一片空白。</h2><p>从组件匣拿出身份、属性或故事，开始组合你的角色。</p><button data-action="add" class="button-cream">＋ 添加第一张组件</button></div>`;
     layoutTable();
@@ -102,20 +105,20 @@
   function renderInspector() {
     if(current.step===5) { $('#inspector-content').innerHTML=reviewHTML(); return; }
     const module=activeModule();
-    $('#inspector-content').innerHTML=module?`<small class="kicker">${steps[current.step].en} · STEP ${String(current.step+1).padStart(2,'0')}</small>${Forms.render(module)}<p class="remove-note">抓住纸面或「拿起」自由摆放；↶ ↷ 可转动纸片，复制和拆下也在上方。拆下后可用顶部「撤销」恢复。</p>`:`<small class="kicker">${steps[current.step].en}</small><h2>还没有${steps[current.step].name}纸片。</h2><div class="empty-inspector"><p>你可以添加这一类组件，也可以继续下一步，按自己的需要组合。</p><button data-action="add-type" data-type="${steps[current.step].type}">＋ 添加${steps[current.step].name}组件</button></div>`;
+    $('#inspector-content').innerHTML=module?`<small class="kicker">${steps[current.step].en} · STEP ${String(current.step+1).padStart(2,'0')}</small>${Forms.render(module)}<p class="remove-note">选中纸片后：← → 旋转，⌘D / Ctrl+D 复制，Delete / Backspace 拆下。⌘Z / Ctrl+Z 可撤销；输入时不会触发纸片操作。</p>`:`<small class="kicker">${steps[current.step].en}</small><h2>还没有${steps[current.step].name}纸片。</h2><div class="empty-inspector"><p>你可以添加这一类组件，也可以继续下一步，按自己的需要组合。</p><button data-action="add-type" data-type="${steps[current.step].type}">＋ 添加${steps[current.step].name}组件</button></div>`;
     updateRuleFeedback();
   }
   function render() { renderNavigation(); renderBoard(); renderInspector(); }
-  function chooseModule(id,{scroll=false}={}) {
-    flushEdit(); selectedId=id; const module=activeModule(); if(!module)return;
+  function chooseModule(id,{scroll=false,edit=false}={}) {
+    flushEdit(); selectedId=id; selectionVisible=true; const module=activeModule(); if(!module)return;
     current.step=steps.findIndex(step=>step.type===module.type);
     if(module.pose)module.pose.z=frontZ();
     renderNavigation(); renderBoard(); renderInspector(); persist();
     if(scroll) document.querySelector(`[data-module-id="${id}"]`)?.scrollIntoView({behavior:motion(),block:'start'});
-    if(innerWidth<761) $('.inspector').scrollIntoView({behavior:motion(),block:'start'});
+    if(edit){if(innerWidth<761)$('.inspector').scrollIntoView({behavior:motion(),block:'start'});$('.inspector [data-path]')?.focus({preventScroll:true});}else focusPaper();
   }
   function goStep(index) {
-    flushEdit(); current.step=Math.max(0,Math.min(5,index));
+    flushEdit(); selectionVisible=false; current.step=Math.max(0,Math.min(5,index));
     selectedId=current.modules.find(item=>item.type===steps[current.step].type)?.id;
     render(); persist();
     if(current.step<5&&selectedId)document.querySelector(`[data-module-id="${selectedId}"]`)?.scrollIntoView({behavior:motion(),block:'start'});
@@ -157,13 +160,18 @@
     board.style.height=Math.ceil(bottom+Math.max(100,width*.16))+'px';
   }
   function rotateModule(id,amount) {
-    mutate(()=>{const module=current.modules.find(item=>item.id===id);if(!module?.pose)return;module.pose.angle=clamp(module.pose.angle+amount,-15,15);module.pose.z=frontZ();selectedId=id;current.step=steps.findIndex(step=>step.type===module.type);},'已转动纸片。');
+    mutate(()=>{const module=current.modules.find(item=>item.id===id);if(!module?.pose)return;module.pose.angle=clamp(module.pose.angle+amount,-15,15);module.pose.z=frontZ();selectedId=id;current.step=steps.findIndex(step=>step.type===module.type);});
+    focusPaper();announce('已转动纸片。');
   }
-  function nudgeModule(id,key,large=false) {
-    const amount=(large?24:8)/$('#paper-board').clientWidth*100;
-    mutate(()=>{const module=current.modules.find(item=>item.id===id);if(!module?.pose)return;module.pose.x+=key==='ArrowLeft'?-amount:key==='ArrowRight'?amount:0;module.pose.y+=key==='ArrowUp'?-amount:key==='ArrowDown'?amount:0;module.pose.z=frontZ();selectedId=id;current.step=steps.findIndex(step=>step.type===module.type);});
-    document.querySelector(`[data-module-id="${id}"] .drag-handle`)?.focus({preventScroll:true});
-    announce('已微调纸片位置。');
+  function duplicateModule(id) {
+    const index=current.modules.findIndex(item=>item.id===id);if(index<0)return;
+    if(current.modules.length>=30){toast('一张角色卡最多放 30 个组件。');return;}
+    mutate(()=>{const module=M.cloneModule(current.modules[index]);module.title+=' · 副本';if(module.pose)module.pose={...module.pose,x:module.pose.x+3,y:module.pose.y+4,angle:clamp(module.pose.angle+1,-15,15),z:frontZ()};current.modules.splice(index+1,0,module);selectedId=module.id;selectionVisible=true;current.step=steps.findIndex(step=>step.type===module.type);},'复制了一张独立纸片。');
+    focusPaper();
+  }
+  function removeModule(id) {
+    const index=current.modules.findIndex(item=>item.id===id);if(index<0)return;
+    mutate(()=>{current.modules.splice(index,1);selectedId=current.modules.find(item=>item.type===steps[current.step].type)?.id;selectionVisible=false;},'组件已拆下；⌘Z / Ctrl+Z 可以恢复。');
   }
   function finish() {
     flushEdit(); const validation=M.validateCharacter(current);
@@ -182,7 +190,7 @@
   function renderLibrary() {
     $('#character-library').innerHTML=[...characters].reverse().map(record=>`<div class="character-record"><div class="record-icon">${record.status==='complete'?'✧':'✎'}</div><div><b>${esc(characterName(record))}</b><small>${record.status==='complete'?'已装订':'草稿'} · ${record.modules.length} 张纸片 · ${new Date(record.updatedAt).toLocaleDateString('zh-CN')}</small></div><div class="record-actions"><button data-action="open-character" data-id="${record.id}">${record.id===current.id?'正在编辑':'打开'}</button><button data-action="clone-character" data-id="${record.id}">复制</button></div></div>`).join('');
   }
-  function switchCharacter(record) { flushEdit();persist();current=record;selectedId=current.modules.find(item=>item.type===steps[current.step].type)?.id||current.modules[0]?.id;undoStack=[];preview=false;document.body.classList.remove('card-preview');$('#preview-button').textContent='预览整卡';render();persist();$('#library-dialog').close();window.scrollTo({top:0,behavior:motion()}); }
+  function switchCharacter(record) { flushEdit();persist();current=record;selectionVisible=false;selectedId=current.modules.find(item=>item.type===steps[current.step].type)?.id||current.modules[0]?.id;undoStack=[];preview=false;document.body.classList.remove('card-preview');$('#preview-button').textContent='预览整卡';render();persist();$('#library-dialog').close();window.scrollTo({top:0,behavior:motion()}); }
   function createCharacter(sample) { switchCharacter(M.createCharacter({sample}));toast(sample?'已放入一份独立的骑士示例。':'新的空白角色已经铺开。'); }
 
   function getPath(root,path){return path.split('.').reduce((value,key)=>value?.[key],root);}
@@ -248,8 +256,9 @@
 
   document.addEventListener('click',event=>{
     if(Date.now()<suppressClickUntil){event.preventDefault();return;}
+    if(!preview&&!event.target.closest('.paper-piece,button,a,input,textarea,select')&&(event.target.closest('.assembly')||event.target===document.body))clearPaperSelection();
     const cardButton=event.target.closest('[data-card-action]');
-    if(cardButton&&!preview){const module=current.modules.find(item=>item.id===cardButton.closest('[data-module-id]')?.dataset.moduleId);if(!module)return;selectedId=module.id;const index=Number(cardButton.dataset.index);mutate(()=>{current.step=steps.findIndex(step=>step.type===module.type);if(cardButton.dataset.cardAction==='set-attribute'&&module.data.items[index])module.data.items[index].value=Number(cardButton.dataset.value);if(cardButton.dataset.cardAction==='toggle-equipment'&&module.data.items[index])module.data.items[index].equipped=!module.data.items[index].equipped;});return;}
+    if(cardButton&&!preview){const module=current.modules.find(item=>item.id===cardButton.closest('[data-module-id]')?.dataset.moduleId);if(!module)return;selectedId=module.id;selectionVisible=true;const index=Number(cardButton.dataset.index);mutate(()=>{current.step=steps.findIndex(step=>step.type===module.type);if(cardButton.dataset.cardAction==='set-attribute'&&module.data.items[index])module.data.items[index].value=Number(cardButton.dataset.value);if(cardButton.dataset.cardAction==='toggle-equipment'&&module.data.items[index])module.data.items[index].equipped=!module.data.items[index].equipped;});return;}
     const formButton=event.target.closest('[data-form-action]');if(formButton){if(formButton.dataset.formAction!=='toggle-budget')formAction(formButton);return;}
     const button=event.target.closest('[data-action]');if(!button)return;
     const action=button.dataset.action,id=button.closest('[data-module-id]')?.dataset.moduleId;
@@ -260,14 +269,9 @@
     if(action==='step')goStep(Number(button.dataset.step));
     if(action==='previous-step')goStep(current.step-1);
     if(action==='next-step'){if(current.step===5)finish();else{const errors=stepErrors(steps[current.step].type);if(errors.length){toast(errors[0].message);renderInspector();}else goStep(current.step+1);}}
-    if(action==='edit-module'||action==='select-module'){if(!preview)chooseModule(id);}
-    if(action==='duplicate-module'){if(current.modules.length>=30){toast('一张角色卡最多放 30 个组件。');return;}mutate(()=>{const index=current.modules.findIndex(item=>item.id===id),module=M.cloneModule(current.modules[index]);module.title+=' · 副本';if(module.pose)module.pose={...module.pose,x:module.pose.x+3,y:module.pose.y+4,angle:clamp(module.pose.angle+1,-15,15),z:frontZ()};current.modules.splice(index+1,0,module);selectedId=module.id;current.step=steps.findIndex(step=>step.type===module.type);},'复制了一张独立纸片。');}
-    if(action==='remove-module')mutate(()=>{const index=current.modules.findIndex(item=>item.id===id);current.modules.splice(index,1);if(selectedId===id)selectedId=current.modules.find(item=>item.type===steps[current.step].type)?.id;},'组件已拆下；点击「撤销」即可恢复。');
-    if(action==='rotate-left')rotateModule(id,-3);
-    if(action==='rotate-right')rotateModule(id,3);
+    if(action==='edit-module'||action==='select-module'){if(!preview)chooseModule(id,{edit:action==='edit-module'});}
     if(action==='tidy')mutate(()=>layoutTable(true),'已把纸片重新铺齐；可以继续自由摆放。');
-    if(action==='toggle-width')mutate(()=>{const module=current.modules.find(item=>item.id===id);module.width=module.width==='full'?'half':'full';selectedId=id;current.step=steps.findIndex(step=>step.type===module.type);},'已调整纸片宽度。');
-    if(action==='preview'){flushEdit();preview=!preview;document.body.classList.toggle('card-preview',preview);button.textContent=preview?'返回组合编辑':'预览整卡';$('#assembly-caption').textContent=preview?'':'抓住纸面或「拿起」自由摆放 · 可以叠压，用 ↶ ↷ 旋转';layoutTable();}
+    if(action==='preview'){flushEdit();clearPaperSelection();preview=!preview;document.body.classList.toggle('card-preview',preview);button.textContent=preview?'返回组合编辑':'预览整卡';$('#assembly-caption').textContent=preview?'':'拖动纸面摆放 · 选中后 ← → 旋转 · ⌘D / Ctrl+D 复制 · Delete 拆下';layoutTable();}
     if(action==='library'){flushEdit();persist();renderLibrary();$('#library-dialog').showModal();}
     if(action==='new')createCharacter(false);
     if(action==='sample')createCharacter(true);
@@ -279,7 +283,7 @@
     if(action==='import')$('#import-file').click();
     if(action==='fix-error'){const error=M.validateCharacter(current).errors[Number(button.dataset.errorIndex)];if(error?.moduleId){chooseModule(error.moduleId,{scroll:true});const path='data.'+error.field;const target=document.querySelector(`[data-path="${CSS.escape(path)}"]`);if(target){for(let ancestor=target.parentElement;ancestor;ancestor=ancestor.parentElement){if(ancestor.tagName==='DETAILS')ancestor.open=true;}target.focus({preventScroll:true});}}else if(error)addModule('identity');}
   });
-  document.addEventListener('focusin',event=>{if(event.target.matches('[data-path]')&&!editSession)editSession=clone(current);});
+  document.addEventListener('focusin',event=>{if(event.target.matches('.paper-piece')&&!preview&&(!selectionVisible||selectedId!==event.target.dataset.moduleId))chooseModule(event.target.dataset.moduleId);if(event.target.matches('[data-path]')&&!editSession)editSession=clone(current);});
   document.addEventListener('input',event=>{if(event.target.matches('[data-path]'))writeField(event.target);});
   document.addEventListener('change',event=>{
     if(event.target.matches('[data-path]')){
@@ -295,9 +299,16 @@
   });
   document.addEventListener('blur',event=>{if(event.target.matches('[data-path]')){normalizeField(event.target);flushEdit();}},true);
   document.addEventListener('keydown',event=>{
-    if(event.target.matches('input,textarea,select')||$('dialog[open]'))return;
-    if((event.metaKey||event.ctrlKey)&&event.key.toLowerCase()==='z'){event.preventDefault();undo();}
-    if(event.target.matches('.drag-handle')&&['ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(event.key)){event.preventDefault();nudgeModule(event.target.closest('[data-module-id]').dataset.moduleId,event.key,event.shiftKey);}
+    if(event.isComposing||event.target.closest('input,textarea,select,[contenteditable]:not([contenteditable="false"]),[role="textbox"],.inspector')||$('dialog[open]')||preview||drag)return;
+    const command=event.metaKey||event.ctrlKey;
+    if(command&&event.key.toLowerCase()==='z'&&!event.shiftKey&&!event.altKey){event.preventDefault();undo();return;}
+    if(event.key==='Escape'){clearPaperSelection();return;}
+    if(!selectionVisible||!activeModule()||event.altKey)return;
+    const focusedPaper=event.target.closest('.paper-piece');
+    if(focusedPaper&&focusedPaper.dataset.moduleId!==selectedId)return;
+    if(!command&&(event.key==='ArrowLeft'||event.key==='ArrowRight')){event.preventDefault();rotateModule(selectedId,event.key==='ArrowLeft'?-3:3);return;}
+    if(command&&event.key.toLowerCase()==='d'&&!event.shiftKey){event.preventDefault();if(!event.repeat)duplicateModule(selectedId);return;}
+    if(!command&&!event.shiftKey&&(event.key==='Delete'||event.key==='Backspace')){event.preventDefault();if(!event.repeat)removeModule(selectedId);}
   });
   $('#import-file').addEventListener('change',async event=>{
     const file=event.target.files[0];if(!file)return;
@@ -329,14 +340,13 @@
   }
   document.addEventListener('pointerdown',event=>{
     const source=event.target.closest('.paper-piece');if(!source||event.button!==0||preview)return;
-    const handle=event.target.closest('.drag-handle');
-    if(!handle&&(event.pointerType==='touch'||!event.target.closest('.piece-content')||event.target.closest('button,a,input,textarea,select')))return;
+    if(!event.target.closest('.piece-content')||event.target.closest('button,a,input,textarea,select'))return;
     flushEdit();event.preventDefault();
     const module=current.modules.find(item=>item.id===source.dataset.moduleId);if(!module?.pose)return;
     const board=$('#paper-board').getBoundingClientRect(),w=source.offsetWidth,h=source.offsetHeight;
     const x=module.pose.x/100*board.width,y=module.pose.y/100*board.width;
     const grip=rotatePoint(event.clientX-board.left-x-w/2,event.clientY-board.top-y-h/2,-module.pose.angle);
-    drag={id:module.id,module,source,handle:handle||source,pointerId:event.pointerId,original:clone(module.pose),snapshot:clone(current),w,h,grip,startX:event.clientX,startY:event.clientY,pointerX:event.clientX,pointerY:event.clientY,lastX:event.clientX,lastTime:performance.now(),started:false,angle:module.pose.angle,targetAngle:module.pose.angle,scale:1};
+    drag={id:module.id,module,source,handle:source,pointerId:event.pointerId,original:clone(module.pose),snapshot:clone(current),w,h,grip,startX:event.clientX,startY:event.clientY,pointerX:event.clientX,pointerY:event.clientY,lastX:event.clientX,lastTime:performance.now(),started:false,angle:module.pose.angle,targetAngle:module.pose.angle,scale:1};
     drag.handle.setPointerCapture(event.pointerId);
   });
   document.addEventListener('pointermove',event=>{
@@ -365,12 +375,12 @@
         remember(ended.snapshot);
         const angle=clamp(ended.original.angle+(ended.pointerX-ended.startX)*.006,-15,15),position=pointerPosition(ended,angle,1),width=$('#paper-board').clientWidth;
         ended.module.pose={x:position.x/width*100,y:position.y/width*100,angle,z:ended.module.pose.z};
-        selectedId=ended.id;current.step=steps.findIndex(step=>step.type===ended.module.type);current.status='draft';
+        selectedId=ended.id;selectionVisible=true;current.step=steps.findIndex(step=>step.type===ended.module.type);current.status='draft';
       }
       layoutTable();const after=ended.source.style.transform;
       if(motion()!=='auto')ended.source.animate([{transform:before},{transform:after,offset:.78},{transform:after}],{duration:300,easing:'cubic-bezier(.2,.75,.25,1)'});
-      document.querySelectorAll('.paper-piece').forEach(el=>el.classList.toggle('selected',el.dataset.moduleId===selectedId));
-      persist();renderNavigation();renderInspector();announce(cancelled?'纸片已回到原处。':'纸片已经放下，桌面布局已保存。');
+      syncPaperSelection();
+      persist();renderNavigation();renderInspector();if(!cancelled)focusPaper();announce(cancelled?'纸片已回到原处。':'纸片已经放下，桌面布局已保存。');
     }else if(!cancelled)chooseModule(ended.id);
     drag=null;
   }
