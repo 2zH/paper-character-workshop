@@ -1,0 +1,43 @@
+/* The stock, cut edges, printed ink and bridges share this one physical face. */
+.card-sheet{position:absolute;left:0;top:0;width:600px;height:870px;transform-origin:0 0;z-index:0;pointer-events:none;isolation:isolate;color:#44372a}
+.card-sheet *{pointer-events:none!important}
+.card-underpaint,.card-face-shell,.card-face,.card-face-ink{position:absolute;inset:0;width:600px;height:870px}
+.card-underpaint{z-index:0;isolation:isolate}
+.card-face-shell{z-index:2;perspective:1700px;perspective-origin:35% 50%}
+.card-face{container-type:inline-size;transform-origin:8% 82%;transform:translate3d(0,0,0) rotate(0deg) rotateY(0deg);filter:drop-shadow(.4px .8px .35px #b5a386b0) drop-shadow(1px 2px 1.1px #51422866);transition:transform .9s cubic-bezier(.2,.75,.18,1),filter .8s ease;will-change:transform}
+.card-face-surface{position:absolute;inset:0;width:100%;height:100%;overflow:visible;z-index:0}
+.card-face-ink{z-index:1;isolation:isolate}
+.card-face-ink>.binding-tab,.card-face-ink>.binding-footer{z-index:2}
+.card-sheet .sheet-art-part,.card-sheet .sheet-ink-part{position:absolute;left:0;top:0;transform-origin:0 0;perspective:none;overflow:visible}
+.card-sheet .atomic-paper:before,.card-sheet .paper-underlay:before{display:none!important}
+.card-sheet .paper-underlay,.card-sheet .paper-cut-face{inset:0;transform:none!important;filter:none!important;transition:none!important;perspective:none!important;background:none;box-shadow:none}
+.card-sheet .paper-underlay>*,.card-sheet .paper-cut-face>*{position:absolute}
+.card-sheet .sheet-ink-part[hidden]{display:none!important}
+.card-sheet .atomic-paper .atomic-equipment-toggle{display:grid}
+.card-sheet .atomic-story-ink,.card-sheet .atomic-collection-ink{position:relative}
+.card-sheet .atomic-hp,.card-sheet .atomic-mp,.card-sheet .atomic-attribute{padding:0;display:block}
+.card-sheet .atomic-paper details{pointer-events:none}
+.has-unified-sheet>.binding-base>.binding-tab,.has-unified-sheet>.binding-base>.binding-footer,.has-unified-sheet>.binding-base>.binding-empty-hint{visibility:hidden}
+.card-face-ink>.sheet-empty-hint[hidden]{display:none!important}
+/* Original transparent articles retain the only pointer, selection, and input targets.
+   In editing mode their ink takes the place of that member's visual mirror. */
+.has-unified-sheet>.paper-piece.sheet-attached{filter:none!important}
+.sheet-attached>.piece-content:before,.sheet-attached .atomic-paper:before{display:none!important}
+.sheet-attached .atomic-paper>.paper-underlay{opacity:0!important}
+.sheet-attached .atomic-paper>.paper-cut-face{opacity:1;transform:none!important;filter:none!important;transition:none!important}
+.sheet-attached .paper-cut-face>.paper-cut-surface{display:none!important}
+.sheet-attached .paper-cut-face>:not(.paper-cut-surface),.sheet-attached .atomic-paper>:not(.paper-underlay):not(.paper-cut-face){opacity:0}
+.sheet-attached .paper-cut-face>details[open],.sheet-attached .atomic-paper>details[open]{opacity:1}
+.sheet-attached.is-editing .paper-cut-face>:not(.paper-cut-surface),.sheet-attached.is-editing .atomic-paper>:not(.paper-underlay):not(.paper-cut-face){opacity:1}
+.layers-open .sheet-attached .paper-cut-face>details[open],.layers-open .sheet-attached .atomic-paper>details[open]{opacity:0!important}
+/* Loose scraps still work independently, but only the full card is peeled. */
+.layers-open .paper-piece:not(.sheet-attached) .atomic-layered>.paper-cut-face{transform:none;filter:drop-shadow(.4px .8px .3px #a3927177) drop-shadow(1px 1.7px .9px #51422848)}
+.layers-open .paper-piece:not(.sheet-attached) .paper-cut-face [data-inline-path],.layers-open .paper-piece:not(.sheet-attached) .paper-cut-face button,.layers-open .paper-piece:not(.sheet-attached) .paper-cut-face details,.layers-open .paper-piece:not(.sheet-attached) .paper-cut-face summary{pointer-events:auto!important}
+.layers-open .card-face{transform:translate3d(-22%,-8%,52px) rotate(-9deg) rotateY(-13deg);filter:drop-shadow(.6px 1px .5px #b6a286) drop-shadow(16px 25px 13px #20130d70)}
+/* The lifted sheet can cross this caption; keep the legend readable without
+   inserting space into the work surface or intercepting a drag. */
+.layers-note{z-index:10010;left:50%;right:auto;width:max-content;max-width:100%;transform:translateX(-50%);padding:7px 14px;background:#291c13ed;border-block:1px solid #8c735344;box-shadow:0 3px 12px #140b0855;color:#ead8b4;pointer-events:none}
+.layers-note>small{color:#c6b18e}
+@media(max-width:760px){.layers-open .card-face{transform:translate3d(-13%,-6%,38px) rotate(-7deg) rotateY(-11deg)}}
+@media(prefers-reduced-motion:reduce){.card-face{transition:none;will-change:auto}}
+@media print{.card-sheet,.card-face-surface{-webkit-print-color-adjust:exact;print-color-adjust:exact}.card-face,.layers-open .card-face{transform:none!important;filter:none!important;transition:none!important;will-change:auto}.card-sheet .atomic-equipment-toggle,.card-sheet .atomic-paper details{display:none}.card-sheet{display:block!important}}

@@ -28,6 +28,7 @@ jobs:
           node tests/atomic-paper-check.mjs
           node tests/group-composition-check.mjs
           node tests/layers-check.mjs
+          node tests/unified-sheet-check.mjs
       - name: Prepare workshop home and design studies
         run: node scripts/build-pages.mjs
       - uses: actions/configure-pages@v5
