@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#30251f"><title>纸上冒险 · 车卡工坊</title>
+  <link rel="stylesheet" href="workshop/workshop.css"><link rel="stylesheet" href="workshop/workshop-cards.css">
+</head>
+<body>
+  <header class="atelier-header">
+    <a class="atelier-brand" href="index.html?v=1">纸上冒险 <span>CHARACTER ATELIER</span></a>
+    <div class="header-actions"><span id="save-status" role="status">保存在此浏览器</span><button data-action="undo" id="undo-button" disabled aria-label="撤销上一步">↶ 撤销</button><button data-action="library">我的角色</button><button data-action="new">新建角色</button></div>
+  </header>
+  <div class="journey-heading"><div><small>一张纸，一段尚未开始的冒险。</small><h1 id="character-heading">车卡工坊</h1></div><div class="journey-actions"><button data-action="add" class="button-cream">＋ 添加纸雕组件</button><button data-action="tidy">整理桌面</button><button data-action="preview" id="preview-button">预览整卡</button><button data-action="export">导出角色 ↗</button></div></div>
+  <nav id="step-nav" class="step-nav" aria-label="车卡步骤"></nav>
+  <main class="atelier-main">
+    <section class="assembly" aria-label="纸雕角色卡组合区">
+      <div class="assembly-caption"><span id="assembly-caption">抓住纸面或「拿起」自由摆放 · 可以叠压，用 ↶ ↷ 旋转</span><span id="module-count"></span></div>
+      <div id="paper-board" class="paper-board"></div>
+      <button class="add-another" data-action="add">＋ 再添一张纸雕组件</button>
+      <footer class="paper-signature"><span>A LITTLE WORLD, MADE OF PAPER</span><span id="character-signature"></span></footer>
+    </section>
+    <aside class="inspector" aria-label="填写与组件编辑"><div id="inspector-content"></div></aside>
+  </main>
+  <footer class="journey-footer"><div><span id="journey-progress"></span><small id="journey-hint"></small></div><div class="footer-actions"><button data-action="previous-step" id="previous-step">上一步</button><button data-action="next-step" class="button-cream" id="next-step">下一步 →</button></div></footer>
+  <dialog id="component-dialog" class="paper-dialog"><header><div><small>THE PAPER BOX</small><h2>从组件匣里，挑一张。</h2></div><button data-action="close-dialog" aria-label="关闭组件匣">×</button></header><p class="dialog-intro">每张纸都可以独立填写、复制、移动或拆下。</p><div id="component-options" class="component-options"></div></dialog>
+  <dialog id="library-dialog" class="paper-dialog library-dialog"><header><div><small>YOUR LITTLE ADVENTURES</small><h2>收好的角色，未完的故事。</h2></div><button data-action="close-dialog" aria-label="关闭角色匣">×</button></header><div class="library-tools"><button data-action="new" class="button-ink">＋ 空白角色</button><button data-action="sample">从骑士示例开始</button><button data-action="import">导入角色 JSON</button></div><div id="character-library"></div><p class="storage-note">角色只保存在当前浏览器。导出 JSON 可以备份，并在另一台设备导入。</p></dialog>
+  <dialog id="finish-dialog" class="paper-dialog finish-dialog"><header><div><small>READY FOR AN ADVENTURE</small><h2 id="finish-title">角色已经装订好了。</h2></div><button data-action="close-dialog" aria-label="关闭完成面板">×</button></header><div class="finish-seal">✧</div><p id="finish-copy"></p><div class="finish-actions"><button data-action="export" class="button-ink">导出角色 JSON ↗</button><button data-action="print">打印 / 存为 PDF</button><button data-action="close-dialog">继续调整</button></div></dialog>
+  <dialog id="notice-dialog" class="paper-dialog"><header><h2 id="notice-title">导入提示</h2><button data-action="close-dialog" aria-label="关闭提示">×</button></header><div id="notice-content"></div><footer><button data-action="close-dialog" class="button-ink">知道了</button></footer></dialog>
+  <input id="import-file" type="file" accept="application/json,.json" hidden>
+  <div id="toast" role="status" aria-live="polite"></div><div id="drag-announcement" class="sr-only" aria-live="polite"></div>
+  <script src="workshop/workshop-model.js"></script><script src="workshop/workshop-forms.js"></script><script src="workshop/workshop-cards.js"></script><script src="workshop/workshop.js"></script>
+</body>
+</html>

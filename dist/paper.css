@@ -27,3 +27,5 @@
 .character-tab{box-shadow:1px 1.5px 1.5px #75664e55;border-color:#8b7b5a66}
 .blank-paper-label{box-shadow:0 1.2px 1.5px #7c6b4c4d;filter:brightness(1.02);border-bottom-color:#a090734d}
 .level-value,.study-tools span,.editor-stats input,.editor-skill-grid input{font-variant-numeric:tabular-nums}
+
+.workshop-entry{font-size:11px;background:#cfba91;color:#453724;border:1px solid #dfcda7;padding:8px 12px;text-decoration:none;border-radius:2px}.workshop-entry:hover{background:#e1cda6}@media(max-width:760px){.workshop-entry{font-size:10px;padding:7px}.bench-brand{display:none}}
