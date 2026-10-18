@@ -16,6 +16,7 @@ function extract(start, end) {
 }
 const helpers = extract('  const clamp =', '  function duplicateModule(');
 const paperCommands=extract('  function duplicateModule(', '  function finish(');
+const chooseModuleSource=extract('  function chooseModule(', '  function goStep(');
 const atomicHelpers=extract('  const atomicTypes=', '  function getPath(');
 const fieldHelpers=extract('  function getPath(', "  document.addEventListener('click',event=>{");
 const keyboard = extract("  document.addEventListener('keydown',event=>{", "  $('#import-file').addEventListener(");
@@ -31,7 +32,7 @@ export function workshop({ reduced = false, initialCurrent=null, dynamicDimensio
     const handlers = {}, raf = new Map(), notices = [];
     let nextFrame = 0, now = 0, saves = [], undoStack = [];
     let selectedId = 'identity', selectionVisible = true, preview = false, dialogOpen = false;
-    let editingId = null, settingsId = null, bindingLayout = null;
+    let editingId = null, settingsId = null, bindingLayout = null, selectedIds = new Set();
     const calls = { duplicate: 0, remove: 0, renders: 0, animated: 0 };
     let current = initialCurrent?clone(initialCurrent):{step:0,status:'complete',bindingEnabled:false,modules:[
       {id:'identity',type:'identity',width:'half',mounted:false,pose:{x:20,y:20,angle:2,z:1}},
@@ -54,7 +55,7 @@ export function workshop({ reduced = false, initialCurrent=null, dynamicDimensio
         getAttribute:key=>attrs.get(key),
         setPointerCapture:id=>captured.add(id),releasePointerCapture:id=>captured.delete(id),
         hasPointerCapture:id=>captured.has(id),animate:()=>calls.animated++,
-        querySelectorAll:()=>[],querySelector:()=>null,
+        querySelectorAll:()=>[],querySelector:()=>null,focus(){},scrollIntoView(){},
         closest(selector){return selector==='.paper-piece'?this:null;}
       };
     }
@@ -93,8 +94,8 @@ export function workshop({ reduced = false, initialCurrent=null, dynamicDimensio
     function render(){if(actualCommands)syncAtomicRows();renderBoard();if(autoSplit&&splitLegacyPapers())renderBoard();}
     function focusPaper(){}
     function syncPaperSelection(){}
-    function clearPaperSelection(){selectionVisible=false;}
-    function chooseModule(id){selectedId=id;selectionVisible=true;}
+    function clearPaperSelection(){selectionVisible=false;selectedIds.clear();}
+    ${chooseModuleSource}
     function mutate(operation){remember();operation();render();persist();}
     function undo(){if(undoStack.length){current=undoStack.pop();render();persist();}}
     ${actualCommands?paperCommands:'function duplicateModule(){calls.duplicate++;} function removeModule(){calls.remove++;}'}
@@ -105,11 +106,12 @@ export function workshop({ reduced = false, initialCurrent=null, dynamicDimensio
     ${pointer}
     updatePaperClasses();layoutTable();
     globalThis.test = {
-      get state(){return {current,drag,resizeDrag,bindingLayout,selectedId,selectionVisible,saves,undoStack,calls,rafSize:raf.size};},
+      get state(){return {current,drag,resizeDrag,bindingLayout,selectedId,selectedIds,selectionVisible,saves,undoStack,calls,rafSize:raf.size,editingId,settingsId};},
       papers:paperNodes,input,body,board,content,model: M,partsAPI: Parts,
       allPapers:papers,paperById,split:()=>{const changed=splitLegacyPapers();if(changed)renderBoard();return changed;},sync:syncAtomicRows,
-      duplicate:duplicateModule,remove:removeModule,restore:restorePart,addPart:addAtomicPart,select:id=>{selectedId=id;selectionVisible=true;},
-      assemble:assembleAll,writeField,normalizeField,formAction,
+      duplicate:duplicateModule,remove:removeModule,restore:restorePart,addPart:addAtomicPart,select:id=>{selectedId=id;selectedIds=new Set([id]);selectionVisible=true;},
+      choose:chooseModule,linked:linkedPapers,selection:selectionMembers,capture:captureMembers,bounds:paperBounds,group:groupSelection,ungroup:ungroupSelection,
+      assemble:assembleAll,openBase,detachAll:detachAllPapers,tidy:()=>mutate(()=>layoutTable(true)),writeField,normalizeField,formAction,
       field(id,path,value,type='number'){return {dataset:{path},value,type,step:'any',hasAttribute:()=>false,matches:selector=>selector==='[data-path]',closest(selector){if(selector==='[data-module-id]'||selector==='.paper-piece')return paperNodes[id];return null;}};},
       layout:()=>layoutTable(),render:()=>render(),persist:()=>persist(),
       rotate:rotateModule,detach:detachModule,rememberCardPlacement,

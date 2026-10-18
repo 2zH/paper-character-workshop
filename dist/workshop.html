@@ -3,8 +3,8 @@
 <head>
   <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="theme-color" content="#30251f"><title>纸上冒险 · 车卡工坊</title>
-  <link rel="stylesheet" href="workshop/workshop.css?v=20261018-atomic-papers"><link rel="stylesheet" href="workshop/workshop-cards.css?v=20261018-atomic-papers"><link rel="stylesheet" href="workshop/workshop-inline.css?v=20261018-atomic-papers"><link rel="stylesheet" href="workshop/workshop-binding.css?v=20261018-atomic-papers"><link rel="stylesheet" href="workshop/workshop-composer.css?v=20261018-atomic-papers">
-  <link rel="stylesheet" href="workshop/workshop-parts.css?v=20261018-atomic-papers">
+  <link rel="stylesheet" href="workshop/workshop.css?v=20261018-paper-groups-final"><link rel="stylesheet" href="workshop/workshop-cards.css?v=20261018-paper-groups-final"><link rel="stylesheet" href="workshop/workshop-inline.css?v=20261018-paper-groups-final"><link rel="stylesheet" href="workshop/workshop-binding.css?v=20261018-paper-groups-final"><link rel="stylesheet" href="workshop/workshop-composer.css?v=20261018-paper-groups-final">
+  <link rel="stylesheet" href="workshop/workshop-parts.css?v=20261018-paper-groups-final">
 </head>
 <body>
   <header class="atelier-header">
@@ -22,6 +22,7 @@
     </section>
     <aside class="inspector review-inspector" aria-label="角色卡检查"><div id="inspector-content"></div></aside>
   </main>
+  <div id="paper-selection-tools" class="paper-selection-tools" aria-label="纸片组合操作" hidden></div>
   <footer class="journey-footer"><div><span id="journey-progress"></span><small id="journey-hint"></small></div><div class="footer-actions"><button data-action="previous-step" id="previous-step">上一步</button><button data-action="next-step" class="button-cream" id="next-step">下一步 →</button></div></footer>
   <dialog id="component-dialog" class="paper-dialog"><header><div><small>THE PAPER BOX</small><h2>从组件匣里，挑一张。</h2></div><button data-action="close-dialog" aria-label="关闭组件匣">×</button></header><p class="dialog-intro">每张纸都可以独立填写、复制、移动或拆下。</p><div id="component-options" class="component-options"></div></dialog>
   <dialog id="library-dialog" class="paper-dialog library-dialog"><header><div><small>YOUR LITTLE ADVENTURES</small><h2>收好的角色，未完的故事。</h2></div><button data-action="close-dialog" aria-label="关闭角色匣">×</button></header><div class="library-tools"><button data-action="new" class="button-ink">＋ 空白角色</button><button data-action="sample">从骑士示例开始</button><button data-action="import">导入角色 JSON</button></div><div id="character-library"></div><p class="storage-note">角色只保存在当前浏览器。导出 JSON 可以备份，并在另一台设备导入。</p></dialog>
@@ -29,6 +30,6 @@
   <dialog id="notice-dialog" class="paper-dialog"><header><h2 id="notice-title">导入提示</h2><button data-action="close-dialog" aria-label="关闭提示">×</button></header><div id="notice-content"></div><footer><button data-action="close-dialog" class="button-ink">知道了</button></footer></dialog>
   <input id="import-file" type="file" accept="application/json,.json" hidden>
   <div id="toast" role="status" aria-live="polite"></div><div id="drag-announcement" class="sr-only" aria-live="polite"></div>
-  <script src="workshop/workshop-model.js?v=20261018-atomic-papers"></script><script src="workshop/workshop-forms.js?v=20261018-atomic-papers"></script><script src="workshop/workshop-cards.js?v=20261018-atomic-papers"></script><script src="workshop/workshop-binding.js?v=20261018-atomic-papers"></script><script src="workshop/workshop-parts.js?v=20261018-atomic-papers"></script><script src="workshop/workshop.js?v=20261018-atomic-papers"></script>
+  <script src="workshop/workshop-model.js?v=20261018-paper-groups-final"></script><script src="workshop/workshop-forms.js?v=20261018-paper-groups-final"></script><script src="workshop/workshop-cards.js?v=20261018-paper-groups-final"></script><script src="workshop/workshop-binding.js?v=20261018-paper-groups-final"></script><script src="workshop/workshop-parts.js?v=20261018-paper-groups-final"></script><script src="workshop/workshop.js?v=20261018-paper-groups-final"></script>
 </body>
 </html>

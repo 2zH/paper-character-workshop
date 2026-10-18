@@ -11,3 +11,15 @@ body.card-preview .paper-resize-handle{display:none!important}
 @media print{.paper-resize-handle,.binding-empty-hint,.binding-drop-guide{display:none!important}}
 
 body.card-preview #fit-button{display:none!important}
+
+/* A faint thread surrounds a selection; the paper keeps its own edit pencil. */
+.paper-piece.multi-selected>.paper-resize-handle{display:none!important}
+.paper-group-frame{position:absolute;z-index:10002;pointer-events:none;outline:1px dashed #ad9260b3;outline-offset:8px}
+.paper-group-frame>.paper-resize-handle{opacity:1;visibility:visible;pointer-events:auto}
+.paper-selection-tools{position:fixed;right:24px;bottom:88px;z-index:10005;display:flex;align-items:center;gap:16px;padding:12px 15px;color:#59472f;background:#eee1c2 url('../assets/paper-fiber.png') center/440px;box-shadow:1px 2px 0 #9a8257,4px 8px 20px #160d0866;font:13px var(--serif);border:1px solid #c0aa80}
+.paper-selection-tools[hidden]{display:none}.paper-selection-tools button{background:none;border:0;border-left:1px solid #a88a5a55;padding:4px 0 4px 13px;color:#674e30;font:inherit;cursor:pointer}.paper-selection-tools kbd{font:10px var(--serif);opacity:.6;margin-left:5px}
+.is-dragging .paper-selection-tools,.is-resizing .paper-selection-tools{opacity:.25;pointer-events:none}
+body.card-preview .paper-group-frame,body.card-preview .paper-selection-tools{display:none!important}
+@media print{.paper-group-frame,.paper-selection-tools{display:none!important}}
+
+.is-resizing .paper-group-frame{opacity:0;pointer-events:none}

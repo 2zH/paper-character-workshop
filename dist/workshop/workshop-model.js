@@ -41,7 +41,7 @@
 
   function createPart(kind, rowId) {
     if (!Object.prototype.hasOwnProperty.call(PART_TITLES, kind)) throw new Error('未知的原子纸片类型。');
-    return { id: uid('part'), kind: kind, rowId: typeof rowId === 'string' ? rowId : null, title: '', width: 'half', pose: null, cardPose: null, paperWidth: null, mounted: false, hidden: false };
+    return { id: uid('part'), kind: kind, rowId: typeof rowId === 'string' ? rowId : null, groupId: null, title: '', width: 'half', pose: null, cardPose: null, paperWidth: null, mounted: false, hidden: false };
   }
 
   function getPapers(character) {
@@ -67,7 +67,7 @@
             return row && (row.name || row.label) || (part.kind === 'collection' ? owner.title || TITLES[owner.type] : PART_TITLES[part.kind]) || '纸片';
           }, set: function (value) { part.title = value; } }
         });
-        ['width', 'pose', 'cardPose', 'paperWidth', 'mounted', 'hidden'].forEach(function (key) {
+        ['width', 'pose', 'cardPose', 'paperWidth', 'mounted', 'hidden', 'groupId'].forEach(function (key) {
           Object.defineProperty(view, key, { enumerable: true, get: function () { return part[key]; }, set: function (value) { part[key] = value; } });
         });
         papers.push(view);
@@ -92,20 +92,28 @@
     return normalizeCharacter(character).character;
   }
 
-  function cloneModule(item) {
+  function cloneModuleWithGroups(item, groupIds) {
     var result = copy(item);
     result.id = uid('module');
     result.mounted = false;
     var rowIds = new Map();
     ['items', 'fields'].forEach(function (key) { if (result.data && Array.isArray(result.data[key])) result.data[key].forEach(function (row) { var previous = row.id; row.id = uid('row'); rowIds.set(previous, row.id); }); });
-    if (Array.isArray(result.parts)) result.parts.forEach(function (part) { part.id = uid('part'); if (part.rowId !== null && part.rowId !== undefined) part.rowId = rowIds.get(part.rowId) || null; part.mounted = false; });
+    if (Array.isArray(result.parts)) result.parts.forEach(function (part) {
+      part.id = uid('part');
+      if (part.rowId !== null && part.rowId !== undefined) part.rowId = rowIds.get(part.rowId) || null;
+      if (typeof part.groupId === 'string' && part.groupId) { if (!groupIds.has(part.groupId)) groupIds.set(part.groupId, uid('group')); part.groupId = groupIds.get(part.groupId); }
+      else part.groupId = null;
+      part.mounted = false;
+    });
     return result;
   }
+  function cloneModule(item) { return cloneModuleWithGroups(item, new Map()); }
   function cloneCharacter(character) {
     var result = copy(character);
     result.id = uid('character');
     result.createdAt = result.updatedAt = now();
-    result.modules = result.modules.map(function (item) { var duplicate = cloneModule(item); duplicate.mounted = item.mounted === true; if (Array.isArray(duplicate.parts)) duplicate.parts.forEach(function (part, index) { part.mounted = item.parts[index].mounted === true; }); return duplicate; });
+    var groupIds = new Map();
+    result.modules = result.modules.map(function (item) { var duplicate = cloneModuleWithGroups(item, groupIds); duplicate.mounted = item.mounted === true; if (Array.isArray(duplicate.parts)) duplicate.parts.forEach(function (part, index) { part.mounted = item.parts[index].mounted === true; }); return duplicate; });
     return result;
   }
 
@@ -203,6 +211,12 @@
       warn(label, '缺失、重复或不合法的 ID 已重新生成。');
       return fixed;
     }
+    function groupId(value, label) {
+      if (value === null || value === undefined) return null;
+      if (typeof value === 'string' && /^[A-Za-z0-9][A-Za-z0-9_-]{0,99}$/.test(value)) return value;
+      warn(label, '无效组合标识已清空。');
+      return null;
+    }
     function rows(value, max, label) {
       if (!Array.isArray(value)) { warn(label, '无效列表已替换为空列表。'); return []; }
       if (value.length > max) warn(label, '最多保留前 ' + max + ' 项。');
@@ -295,7 +309,7 @@
             if (part.width !== undefined && part.width !== 'half' && part.width !== 'full') warn(partLabel, '无效宽度已改为半幅。');
             if (part.mounted !== undefined && typeof part.mounted !== 'boolean') warn(partLabel, '无效装订状态已改为散放。');
             if (part.hidden !== undefined && typeof part.hidden !== 'boolean') warn(partLabel, '无效隐藏状态已改为显示。');
-            result.parts.push({ id: id(part.id, 'part', partLabel), kind: part.kind, rowId: rowId, title: text(part.title, '', 80, partLabel + '标题'), width: part.width === 'full' ? 'full' : 'half', pose: pose(part.pose, partLabel + '纸桌位置', 50000), cardPose: cardPose(part.cardPose, partLabel + '底卡位置', Number.MIN_VALUE, 50000), paperWidth: paperWidth(part.paperWidth, partLabel + '散片宽度', Number.MIN_VALUE), mounted: part.mounted === true, hidden: part.hidden === true });
+            result.parts.push({ id: id(part.id, 'part', partLabel), kind: part.kind, rowId: rowId, groupId: groupId(part.groupId, partLabel + '组合'), title: text(part.title, '', 80, partLabel + '标题'), width: part.width === 'full' ? 'full' : 'half', pose: pose(part.pose, partLabel + '纸桌位置', 50000), cardPose: cardPose(part.cardPose, partLabel + '底卡位置', Number.MIN_VALUE, 50000), paperWidth: paperWidth(part.paperWidth, partLabel + '散片宽度', Number.MIN_VALUE), mounted: part.mounted === true, hidden: part.hidden === true });
           });
         }
       }
