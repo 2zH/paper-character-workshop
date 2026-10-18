@@ -29,21 +29,22 @@
     if (TYPES.indexOf(type) < 0) throw new Error('未知的纸雕组件类型。');
     var data;
     if (type === 'identity') data = { name: '林恩 · 灰枝', age: 27, occupation: '遗迹巡游者', appearance: '赤发、旧铠甲，披着一件补过的橄榄色斗篷。', level: 1, portrait: PORTRAITS[0] };
-    if (type === 'attributes') data = { budget: null, rules: { enabled: false, min: null, max: null, integer: false }, items: ATTRS.map(function (a) { return { id: uid('attr'), key: a[0], name: a[1], value: a[2] }; }) };
+    if (type === 'attributes') data = { hp: 85, maxHp: 100, mp: 43, maxMp: 100, budget: null, rules: { enabled: false, min: null, max: null, integer: false }, items: ATTRS.map(function (a) { return { id: uid('attr'), key: a[0], name: a[1], value: a[2] }; }) };
     if (type === 'skills') data = { budget: null, rules: { enabled: false, min: null, max: null, integer: false }, items: SKILLS.map(function (a) { return { id: uid('skill'), name: a[0], value: a[1] }; }) };
     if (type === 'equipment') data = { items: GEAR.map(function (a, i) { return { id: uid('gear'), name: a[0], detail: a[1], quantity: 1, weight: a[2], equipped: true, assetIndex: i }; }) };
     if (type === 'background') data = { fields: FIELDS.map(function (label, i) { return { id: uid('story'), label: label, value: FIELD_SAMPLES[i] }; }) };
-    return { id: uid('module'), type: type, title: TITLES[type], width: type === 'background' ? 'full' : 'half', pose: null, data: data };
+    return { id: uid('module'), type: type, title: TITLES[type], width: type === 'background' ? 'full' : 'half', pose: null, mounted: false, data: data };
   }
 
   function createCharacter(options) {
     options = options || {};
     var sample = options.sample !== false;
     var timestamp = now();
-    var character = { schemaVersion: 1, id: uid('character'), name: sample ? '林恩 · 灰枝' : '', createdAt: timestamp, updatedAt: timestamp, step: 0, status: 'draft', modules: TYPES.map(createModule) };
+    var character = { schemaVersion: 1, id: uid('character'), name: sample ? '林恩 · 灰枝' : '', createdAt: timestamp, updatedAt: timestamp, step: 0, status: 'draft', bindingEnabled: false, modules: TYPES.map(createModule) };
     if (!sample) {
       Object.assign(character.modules[0].data, { name: '', age: null, occupation: '', appearance: '' });
       character.modules[1].data.items.forEach(function (row) { row.value = 0; });
+      character.modules[1].data.hp = character.modules[1].data.mp = 0;
       character.modules[2].data.items.forEach(function (row) { row.value = 0; });
       character.modules[3].data.items = [];
       character.modules[4].data.fields.forEach(function (row) { row.value = ''; });
@@ -54,6 +55,7 @@
   function cloneModule(item) {
     var result = copy(item);
     result.id = uid('module');
+    result.mounted = false;
     ['items', 'fields'].forEach(function (key) { if (result.data && Array.isArray(result.data[key])) result.data[key].forEach(function (row) { row.id = uid('row'); }); });
     return result;
   }
@@ -61,7 +63,7 @@
     var result = copy(character);
     result.id = uid('character');
     result.createdAt = result.updatedAt = now();
-    result.modules = result.modules.map(cloneModule);
+    result.modules = result.modules.map(function (item) { var duplicate = cloneModule(item); duplicate.mounted = item.mounted === true; return duplicate; });
     return result;
   }
 
@@ -164,8 +166,10 @@
       updatedAt: date(input.updatedAt, timestamp, '更新时间'),
       step: num(input.step, 0, 0, 5, true, '当前步骤'),
       status: input.status === 'complete' ? 'complete' : 'draft',
+      bindingEnabled: input.bindingEnabled === true,
       modules: []
     };
+    if (input.bindingEnabled !== undefined && typeof input.bindingEnabled !== 'boolean') warn('装订模式', '无效开关已设为关闭。');
     if (input.status !== undefined && input.status !== 'complete' && input.status !== 'draft') warn('状态', '未知状态已改为草稿。');
     if (input.modules.length > 30) warn('组件列表', '最多保留前 30 个组件。');
     input.modules.slice(0, 30).forEach(function (item, index) {
@@ -173,7 +177,8 @@
       if (!plain(item) || TYPES.indexOf(item.type) < 0) { warn(label, '已跳过未知或无效组件。'); return; }
       var d = plain(item.data) ? item.data : {};
       if (!plain(item.data)) warn(label, '无效内容已替换为空白内容。');
-      var result = { id: id(item.id, 'module', label), type: item.type, title: text(item.title, TITLES[item.type], 80, label + '标题'), width: item.width === 'full' ? 'full' : 'half', pose: pose(item.pose, label + '纸桌位置'), data: {} };
+      var result = { id: id(item.id, 'module', label), type: item.type, title: text(item.title, TITLES[item.type], 80, label + '标题'), width: item.width === 'full' ? 'full' : 'half', pose: pose(item.pose, label + '纸桌位置'), mounted: item.mounted === true, data: {} };
+      if (item.mounted !== undefined && typeof item.mounted !== 'boolean') warn(label + '装订状态', '无效状态已改为散放。');
       if (item.width !== 'full' && item.width !== 'half') warn(label, '无效宽度已改为半幅。');
       if (item.type === 'identity') {
         result.data = { name: text(d.name, '', 120, label + '姓名'), age: num(d.age, null, 0, 999, true, label + '年龄', true), occupation: text(d.occupation, '', 120, label + '职业'), appearance: text(d.appearance, '', 2000, label + '外貌'), level: num(d.level, 1, 1, 99, true, label + '等级'), portrait: PORTRAITS.indexOf(d.portrait) >= 0 ? d.portrait : PORTRAITS[0] };
@@ -194,6 +199,12 @@
           if (isAttr) output.key = text(row.key, '', 20, rowLabel + '缩写');
           return output;
         }) };
+        if (isAttr) {
+          result.data.hp = d.hp === undefined ? 85 : freeNumber(d.hp, label + '生命值');
+          result.data.maxHp = d.maxHp === undefined ? 100 : freeNumber(d.maxHp, label + '生命上限');
+          result.data.mp = d.mp === undefined ? 43 : freeNumber(d.mp, label + '魔力值');
+          result.data.maxMp = d.maxMp === undefined ? 100 : freeNumber(d.maxMp, label + '魔力上限');
+        }
       }
       if (item.type === 'equipment') {
         result.data = { items: rows(d.items, 80, label + '装备').map(function (row, i) {
@@ -250,6 +261,7 @@
         var isAttr = item.type === 'attributes';
         var rows = Array.isArray(d.items) ? d.items : [];
         var rules = plain(d.rules) ? d.rules : { enabled: d.budget !== null && d.budget !== undefined, min: null, max: null, integer: false };
+        if (isAttr) ['hp', 'maxHp', 'mp', 'maxMp'].forEach(function (key) { if (d[key] !== undefined && (typeof d[key] !== 'number' || !Number.isFinite(d[key]))) error(item, key, '请填写有效的有限数值；可以使用小数或负数。'); });
         rows.forEach(function (row, i) {
           if (blank(row.name)) error(item, 'items.' + i + '.name', '第 ' + (i + 1) + ' 项' + (isAttr ? '属性' : '技能') + '缺少名称。');
           if (typeof row.value !== 'number' || !Number.isFinite(row.value)) error(item, 'items.' + i + '.value', '请填写有效的有限数值；可以使用小数或负数。');

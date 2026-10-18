@@ -1,0 +1,61 @@
+@charset "UTF-8";
+
+/* Writing stays on the paper. The artwork keeps its own proportions. */
+[data-inline-path]{pointer-events:auto}
+.paper-piece.is-editing .piece-content{cursor:default;touch-action:pan-y}
+.paper-piece.is-editing [data-inline-path]{pointer-events:auto;cursor:text;border-radius:1px}
+.paper-piece.is-editing [data-inline-path]:hover{outline:1px dashed #8d704b55;outline-offset:2px}
+.paper-inline-input{display:block;box-sizing:border-box;width:100%;min-width:0;max-width:100%;height:100%;margin:0;padding:0 2px;border:0;border-bottom:1px solid #93744755;border-radius:0;background:#fff9e81c;color:inherit;font:inherit;font-weight:inherit;letter-spacing:inherit;line-height:inherit;text-align:inherit;box-shadow:none;pointer-events:auto;cursor:text;touch-action:manipulation;outline:none;user-select:text;-webkit-user-select:text;appearance:none;-moz-appearance:textfield}
+.paper-inline-input::placeholder{color:#a28c67}
+.paper-inline-input:focus{border-bottom-color:#8b6040;background:#fff9e87a;box-shadow:0 2px 0 -1px #8b604044}
+.paper-inline-input::-webkit-inner-spin-button,.paper-inline-input::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
+textarea.paper-inline-input{resize:vertical;min-height:3.1em;line-height:1.65;white-space:pre-wrap;overflow:auto;text-align:left}
+.paper-piece.is-editing .piece-character-name{overflow:visible}
+.paper-piece.is-editing .piece-level-label b{display:inline-block;width:2.7ch;vertical-align:baseline}
+.paper-piece.is-editing .piece-identity-detail{overflow:visible}
+.paper-piece.is-editing .piece-identity-detail span{display:block;overflow:visible}
+.paper-piece.is-editing .piece-identity-detail .paper-inline-input{height:1.7em;line-height:1.5}
+.paper-piece.is-editing .piece-attribute-label{overflow:visible;gap:6px}
+.paper-piece.is-editing .piece-attribute-label>b{flex:0 0 43%;min-width:0}
+.paper-piece.is-editing .piece-attribute-label>span{flex:1;min-width:0;overflow:visible}
+.paper-piece.is-editing .piece-skill-name{overflow:visible}
+.paper-piece.is-editing .piece-identity{margin-bottom:48px}
+.paper-piece.is-editing .piece-identity:after{content:'';position:absolute;z-index:0;left:2%;right:2%;bottom:-46px;height:62px;background:#eee4cc url('../assets/paper-fiber.png') center/340px;box-shadow:1px 3px 2px #36251526;clip-path:polygon(0 0,100% 0,99.8% 96%,86% 98%,62% 96%,31% 100%,1% 97%)}
+.paper-piece.is-editing .piece-appearance{height:auto!important;min-height:3.3em;white-space:normal;overflow:visible}
+.paper-piece.is-editing .piece-appearance textarea{min-height:3.3em;max-height:5em}
+.paper-piece.is-editing .piece-story-field h4{display:flex;gap:5px;align-items:center}
+.paper-piece.is-editing .piece-story-field h4 small{flex:none}
+.paper-piece.is-editing .piece-story-field h4>[data-inline-path]{flex:1;min-width:0}
+.paper-piece.is-editing .piece-story-field p{background:none}
+.paper-piece.is-editing .piece-story-field textarea{line-height:1.85;min-height:5.55em;background:repeating-linear-gradient(to bottom,transparent 0,transparent calc(1.85em - 1px),#a98e6129 calc(1.85em - 1px),#a98e6129 1.85em)}
+
+/* The artwork toggles equipment; its ink is independently editable. */
+.piece-equipment-slot>.piece-equipment-hit{position:absolute;inset:0 0 auto;width:100%;height:73%;pointer-events:auto}
+.piece-equipment-slot>.paper-row-remove{position:absolute;right:1px;top:-8px;z-index:3;width:21px;height:21px}
+.piece-equipment-quantity [data-inline-path]{display:inline-block;min-width:1ch}
+.paper-piece.is-editing .piece-equipment-name{overflow:visible}
+.paper-piece.is-editing .piece-equipment-quantity [data-inline-path]{width:3.8ch;vertical-align:baseline}
+.paper-piece.is-editing .piece-equipment-quantity .paper-inline-input{height:1.5em;text-align:center}
+
+.paper-row-remove,.paper-edit-footer,.paper-equipment-notes{display:none}
+.paper-piece.is-editing .paper-row-remove{display:inline-grid;place-items:center;flex:none;min-width:18px;min-height:18px;padding:1px;border:0;background:#e6d8b9b0;border-radius:50%;color:#8d6549;cursor:pointer;pointer-events:auto}
+.paper-row-remove svg,.paper-row-add svg{display:block;width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.25;stroke-linecap:round;pointer-events:none}
+.paper-row-remove:hover{background:#ad705c33;color:#83422d}
+.paper-row-remove:focus-visible,.paper-edit-footer button:focus-visible,.paper-equipment-notes summary:focus-visible{outline:2px solid #87613f;outline-offset:3px}
+.paper-piece.is-editing .paper-edit-footer{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px;position:relative;margin:8px 5px 0;padding:10px 9px 12px;border-top:1px dashed #9b805544;background:#e7dbc0 url('../assets/paper-fiber.png') center/340px;box-shadow:1px 2px 2px #130a0626;color:#755c3e;font:12px/1.4 'Bradley Hand','Noteworthy','Kaiti SC','KaiTi',cursive;clip-path:polygon(0 0,100% 0,99.7% 97%,72% 99%,38% 97%,0 100%)}
+.paper-edit-footer button{display:inline-flex;align-items:center;justify-content:center;gap:5px;padding:5px 3px;border:0;border-bottom:1px solid transparent;background:transparent;color:inherit;font:inherit;cursor:pointer;white-space:nowrap;touch-action:manipulation}
+.paper-edit-footer button:hover{border-bottom-color:#9a794c}
+.paper-edit-footer button[data-action=finish-inline]{color:#4e6446}
+.paper-edit-actions{display:flex;gap:10px;align-items:center;margin-left:auto}
+.paper-inline-hint{font-size:11px;color:#9c805a}
+.paper-piece.is-editing .paper-equipment-notes{display:block;position:relative;margin:5px 6px 0;padding:12px 18px 15px;background:#eee3ca url('../assets/paper-fiber.png') center/340px;box-shadow:1px 2px 2px #130a0626;color:#806748;font:13px/1.6 'Bradley Hand','Noteworthy','Kaiti SC','KaiTi',cursive}
+.paper-equipment-notes summary{cursor:pointer;font-size:12px;color:#8d7250}
+.paper-equipment-note{padding:12px 0 8px;border-bottom:1px dashed #ae916033}
+.paper-equipment-note:last-child{border-bottom:0}
+.paper-equipment-note h4{display:flex;justify-content:space-between;align-items:center;gap:9px;margin:0 0 8px;font:inherit;color:#695338}
+.paper-equipment-note h4 small{display:inline-flex;align-items:center;gap:4px;font-size:11px;line-height:1.4;font-weight:400;white-space:nowrap}
+.paper-equipment-note h4 small [data-inline-path]{display:inline-block;width:4.5ch}
+.paper-equipment-note p{margin:0;color:#8b7351;font-size:12px;white-space:pre-wrap;overflow-wrap:anywhere}
+
+body.card-preview .paper-edit-footer,body.card-preview .paper-row-remove,body.card-preview .paper-equipment-notes{display:none!important}
+@media print{.paper-edit-footer,.paper-row-remove,.paper-equipment-notes{display:none!important}}
