@@ -32,6 +32,7 @@
     return width/340*h;
   }
   function naturalSize(module) {
+    if(module.kind&&window.WorkshopParts)return window.WorkshopParts.naturalSize(module);
     const size=slots[module.type];
     return size?{w:size.w,h:size.h}:{w:340,h:appendixHeight(module,340)};
   }
@@ -40,7 +41,7 @@
     const frameWidth=Math.min(maxCardWidth,width-32),scale=frameWidth/600;
     const frame={x:(width-frameWidth)/2,y:20,width:frameWidth,height:870*scale};
     const modules=character.modules||[],placed={},mapped={};
-    const primaryIds=modules.filter(module=>slots[module.type]).map(module=>module.id);
+    const primaryIds=modules.filter(module=>!module.kind&&slots[module.type]).map(module=>module.id);
     const appendixIds=modules.filter(module=>!slots[module.type]&&module.mounted===true).map(module=>module.id);
     for(const [type,box] of Object.entries(slots))mapped[type]={x:frame.x+box.x*scale,y:frame.y+box.y*scale,w:box.w*scale,h:box.h*scale};
     const looseStart=frame.y+frame.height+45;

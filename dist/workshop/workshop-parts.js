@@ -1,0 +1,126 @@
+(() => {
+  'use strict';
+  const esc=value=>String(value??'').replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
+  const num=(value,fallback=0)=>Number.isFinite(Number(value))?Number(value):fallback;
+  const clamp=(value,min,max)=>Math.max(min,Math.min(max,value));
+  const text=(value,fallback='')=>String(value??'').trim()||fallback;
+  const ink=(path,value,label,type='',multiline=false)=>`<span data-inline-path="${esc(path)}" data-inline-label="${esc(label)}"${type?` data-inline-type="${type}"`:''}${multiline?' data-inline-multiline="true"':''}>${esc(value)}</span>`;
+  const pos=(x,y,w,h,W,H)=>`left:${x/W*100}%;top:${y/H*100}%;width:${w/W*100}%;height:${h/H*100}%`;
+  const colors=['#cbb14c','#c59f58','#bb8154','#b06654','#a75358','#914453','#773c47'];
+  const noise=(i,seed=8)=>{const n=Math.sin(i*127.1+seed*311.7)*43758.5453;return n-Math.floor(n);};
+  function rowFor(paper,field='items') {
+    const rows=Array.isArray(paper.data?.[field])?paper.data[field]:[];
+    const index=rows.findIndex(row=>row.id===paper.rowId);
+    return {row:rows[index]||null,index,rows};
+  }
+  function naturalSize(paper) {
+    if(paper.kind==='story') {
+      const {row}=rowFor(paper,'fields');
+      const lines=String(row?.value||'').split('\n').reduce((n,line)=>n+Math.max(1,Math.ceil(line.length/19)),0);
+      return {w:284,h:Math.max(102,56+lines*23)};
+    }
+    return {...({ 'identity-meta':{w:340,h:90},portrait:{w:340,h:455},hp:{w:205,h:32},mp:{w:205,h:32},attribute:{w:205,h:33},radar:{w:205,h:180},equipment:{w:96,h:104},skill:{w:292,h:64},collection:{w:340,h:100} }[paper.kind]||{w:340,h:100})};
+  }
+  function roughRect(x,y,w,h,seed=8) {
+    const points=[];
+    for(let side=0;side<4;side++) {
+      const count=Math.max(4,Math.floor((side%2?h:w)/12));
+      for(let i=0;i<=count;i++){const t=i/count,off=(noise(i+side*101,seed)-.5)*1.6;points.push(side===0?[x+t*w,y+off]:side===1?[x+w+off,y+t*h]:side===2?[x+(1-t)*w,y+h+off]:[x+off,y+(1-t)*h]);}
+    }
+    return 'M'+points.map(point=>point.map(v=>v.toFixed(2)).join(' ')).join(' L')+' Z';
+  }
+  function cutEdges(path,weight=1.2) {
+    return `<path d="${path}" fill="none" stroke="#fff2d4" stroke-width="${weight+1}" transform="translate(.6,1.1)" opacity=".95"/><path d="${path}" fill="none" stroke="#8b7d61" stroke-width="${weight+1.1}" transform="translate(-.6,-.9)" opacity=".55"/><path d="${path}" fill="none" stroke="#4c4435" stroke-width="${weight}" stroke-dasharray="81 .8 137 1.3 43 .5" opacity=".7"/>`;
+  }
+  function identityMeta(paper) {
+    const d=paper.data||{};
+    return `<div class="atomic-character-name" style="${pos(14,2,312,34,340,90)}">${ink('data.name',text(d.name,'尚未署名的旅人'),'角色姓名')}</div><div class="atomic-level" style="${pos(15,38,126,37,340,90)}"><i>♢</i><b>LV:</b>${ink('data.level',String(d.level??1).padStart(2,'0'),'等级','number')}</div><div class="atomic-identity-meta" style="${pos(154,41,171,31,340,90)}">${ink('data.occupation',text(d.occupation,'写下职业'),'职业')}<i>·</i>${ink('data.age',d.age??'年龄','年龄','number')}<small>岁</small></div><details class="atomic-appearance" style="${pos(18,76,307,12,340,90)}"><summary>人物手记 · 外貌</summary><div class="atomic-popover">${ink('data.appearance',text(d.appearance,'写下初见时的模样'),'外貌描述','',true)}</div></details><svg class="atomic-cut-lines" viewBox="0 0 340 90" aria-hidden="true"><path d="M14 35Q172 38 326 34" fill="none" stroke="#6f5f42" stroke-width="1" opacity=".5"/></svg>`;
+  }
+  function portrait(paper) {
+    const source=paper.data?.portrait==='assets/chibi-cutout.png'?'assets/chibi-cutout.png':'assets/knight-cutout.png';
+    const path='M20 21 L99 21 Q113 22 117 6 L327 4 L333 10 L332 404 L304 405 Q291 407 289 436 L20 436 L17 416 L19 42 Z';
+    return `<div class="atomic-portrait-wash" style="${pos(20,8,312,429,340,455)}"></div><img class="atomic-knight" src="${source}" alt="手绘冒险者立绘" style="${pos(25,14,298,416,340,455)}"><svg class="atomic-cut-lines" viewBox="0 0 340 455" aria-hidden="true">${cutEdges(path,1.7)}<path d="M56 43l-4 12l-10 3l9 5l2 12l6-12l11-3l-11-4Z M289 36l-6 16l16 5l6-17Z" fill="none" stroke="#87785a" stroke-width="2" opacity=".55"/></svg><div class="atomic-stars" style="${pos(0,255,26,124,340,455)}" aria-hidden="true">★<br>★<br>★</div><span class="atomic-portrait-caption" style="${pos(43,440,260,12,340,455)}">a little paper adventurer</span>`;
+  }
+  function resource(paper) {
+    const key=paper.kind,maxKey=key==='hp'?'maxHp':'maxMp',label=key.toUpperCase(),d=paper.data||{};
+    const value=num(d[key],key==='hp'?85:43),maximum=num(d[maxKey],100),percent=maximum>0?clamp(value/maximum*100,0,100):0;
+    return `<b class="atomic-resource-label">${label}</b><div class="atomic-resource-trough"><i data-live-art="${key}-fill" style="width:${percent}%;--pigment:${key==='hp'?'#a54e64':'#6196a5'}"></i><span>${ink('data.'+key,value,label+' 当前值','number')}<em>/</em>${ink('data.'+maxKey,maximum,label+' 上限','number')}</span></div>`;
+  }
+  function attribute(paper) {
+    const {row,index,rows}=rowFor(paper);if(!row)return collection(paper);
+    const value=num(row.value),max=rows.reduce((n,item)=>Math.max(n,num(item.value)),7),filled=Math.ceil(Math.max(0,value)/max*7);
+    return `<div class="atomic-attribute-label">${ink(`data.items.${index}.key`,text(row.key,`A${index+1}`),'属性缩写')}<small>${ink(`data.items.${index}.name`,text(row.name,'属性名称'),'属性名称')}</small></div><div class="atomic-punched-dots" data-live-art="attribute-dots-${esc(row.id)}" aria-hidden="true">${Array.from({length:7},(_,i)=>`<i style="--pigment:${i<filled?colors[i]:'#d4c9aa'};transform:rotate(${noise(i+index)*30-15}deg)"></i>`).join('')}</div><b class="atomic-attribute-value">${ink(`data.items.${index}.value`,value,'属性数值','number')}</b>`;
+  }
+  function radar(paper) {
+    const items=Array.isArray(paper.data?.items)?paper.data.items:[],count=Math.max(3,items.length),cx=102.5,cy=90,radius=70,max=items.reduce((n,row)=>Math.max(n,num(row.value)),7);
+    const pigments=['#c58e8a','#b99e77','#c8c18c','#dbbf6a','#c9b17d','#b5b68e','#a7b2a4','#aa98b1'];
+    const wedges=Array.from({length:count},(_,i)=>{
+      const step=Math.PI*2/count,a=-Math.PI/2+i*step,b=a+step,path=`M${cx+Math.cos(a+step/2)*5} ${cy+Math.sin(a+step/2)*5} L${cx+Math.cos(a)*radius} ${cy+Math.sin(a)*radius} L${cx+Math.cos(b)*radius} ${cy+Math.sin(b)*radius} Z`;
+      return `<path d="${path}" fill="${pigments[i%pigments.length]}" opacity=".65"/>${cutEdges(path,count>8?.65:1.05)}`;
+    }).join('');
+    const labels=items.map((row,i)=>{const a=-Math.PI/2+i*Math.PI*2/count;return `<text x="${cx+Math.cos(a)*86}" y="${cy+Math.sin(a)*84+3}" text-anchor="middle" font-size="${count>12?5:count>8?7:10}">${esc(text(row.key,row.name))}</text>`;}).join('');
+    const polygon=items.length>2?'M'+items.map((row,i)=>{const a=-Math.PI/2+i*Math.PI*2/count,r=clamp(num(row.value)/max,0,1)*68;return `${cx+Math.cos(a)*r} ${cy+Math.sin(a)*r}`;}).join(' L')+' Z':'';
+    return `<svg class="atomic-radar-svg" data-live-art="attribute-radar" viewBox="0 0 205 180" role="img" aria-label="${items.length} 项属性雷达图">${wedges}${polygon?`<path d="${polygon}" fill="#b7615b26" stroke="#79654d" stroke-width="1.1" opacity=".75"/>`:''}<g>${labels}</g></svg>`;
+  }
+  function bag() {return '<svg viewBox="0 0 80 80" aria-hidden="true"><path d="M27 27Q24 12 40 13Q56 13 54 28M24 27L58 28L63 65Q42 71 18 64ZM21 31Q40 42 59 32L57 46Q42 54 23 44ZM32 49L47 49L46 62L32 63Z" fill="#a98b5b44" stroke="#695641" stroke-width="1.5"/><path d="M28 29l1 35M53 30l1 35M38 38v12" fill="none" stroke="#695641" stroke-width="1.2"/></svg>';}
+  function equipment(paper) {
+    const {row,index}=rowFor(paper);if(!row)return collection(paper);
+    const asset=Number.isInteger(row.assetIndex)&&row.assetIndex>=0&&row.assetIndex<6?row.assetIndex:null,equipped=row.equipped!==false,path=roughRect(10,5,76,73,index+8);
+    return `<div class="atomic-gear-wash${equipped?'':' atomic-gear-stowed'}" data-live-art="equipment-art-${esc(row.id)}" style="${pos(10,5,76,73,96,104)};--pigment:${['#d9c48a','#b6c7c3','#bdc39e'][index%3]}">${asset===null?bag():`<div class="atomic-gear-sprite" style="--col:${asset%3};--row:${Math.floor(asset/3)}"></div>`}</div><svg class="atomic-cut-lines" viewBox="0 0 96 104" aria-hidden="true">${cutEdges(path,1.1)}</svg><div class="atomic-gear-name" style="${pos(5,80,86,13,96,104)}">${ink(`data.items.${index}.name`,text(row.name,'未命名物品'),'装备名称')}<small>×${ink(`data.items.${index}.quantity`,num(row.quantity,1),'装备数量','number')}</small></div><button type="button" class="atomic-equipment-toggle" data-card-action="toggle-equipment" data-index="${index}" aria-label="${equipped?'收起':'装备'}${esc(text(row.name,'物品'))}" aria-pressed="${equipped}" style="${pos(4,4,18,18,96,104)}">${equipped?'✦':'·'}</button><details class="atomic-gear-detail" style="${pos(10,94,76,10,96,104)}"><summary>物品手记</summary><div class="atomic-popover">${ink(`data.items.${index}.detail`,text(row.detail,'补充装备描述'),'装备描述','',true)}<small class="atomic-gear-weight">${ink(`data.items.${index}.weight`,num(row.weight),'装备重量','number')} kg</small></div></details>`;
+  }
+  function skill(paper) {
+    const {row,index,rows}=rowFor(paper);if(!row)return collection(paper);
+    const max=rows.reduce((n,item)=>Math.max(n,num(item.value)),100),value=num(row.value),percent=clamp(value/max*100,0,100),path=roughRect(8,29,276,12,index+19);
+    return `<div class="atomic-skill-name" style="${pos(9,3,204,23,292,64)}">${ink(`data.items.${index}.name`,text(row.name,'未命名技能'),'技能名称')}</div><b class="atomic-skill-value" style="${pos(215,0,69,27,292,64)}">${ink(`data.items.${index}.value`,value,'技能数值','number')}</b><div class="atomic-skill-trough" style="${pos(8,29,276,12,292,64)}"><i data-live-art="skill-fill-${esc(row.id)}" style="width:${percent}%;--pigment:${['#b78667','#95a688','#9faaa8','#c0a264','#ad848b','#9696a3'][index%6]}"></i></div><svg class="atomic-cut-lines" viewBox="0 0 292 64" aria-hidden="true">${cutEdges(path,.8)}${Array.from({length:11},(_,i)=>`<path d="M${9+i*27.4} 45v${i%5===0?5:3}" stroke="#8c7957" stroke-width=".6"/>`).join('')}</svg>`;
+  }
+  function story(paper) {
+    const {row,index}=rowFor(paper,'fields');if(!row)return collection(paper);
+    return `<div class="atomic-story-ink"><h4><small>${String(index+1).padStart(2,'0')}</small>${ink(`data.fields.${index}.label`,text(row.label,'一段往事'),'背景标题')}</h4><p>${ink(`data.fields.${index}.value`,text(row.value,'这一页，等你写下。'),'背景内容','',true)}</p></div>`;
+  }
+  function collection(paper) {
+    const label={identity:'身份',attributes:'属性',skills:'技能',equipment:'装备',background:'背景'}[paper.type]||'纸片';
+    return `<div class="atomic-collection-ink"><i aria-hidden="true">✧</i><span>${esc(text(paper.title,label))}</span><small>添上第一${paper.type==='equipment'?'件物品':'个条目'}，留下一笔冒险。</small></div>`;
+  }
+  const renderers={'identity-meta':identityMeta,portrait,hp:resource,mp:resource,attribute,radar,equipment,skill,story,collection};
+  function render(paper) {
+    if(!paper||!renderers[paper.kind])return '<div class="atomic-paper atomic-collection"><div class="atomic-collection-ink">尚未识别的纸片</div></div>';
+    return `<div class="atomic-paper atomic-${esc(paper.kind)}" data-atomic-kind="${esc(paper.kind)}">${renderers[paper.kind](paper)}</div>`;
+  }
+  function splitRects(module,{primary=false}={}) {
+    const d=module.data||{},items=Array.isArray(d.items)?d.items:[],fields=Array.isArray(d.fields)?d.fields:[],rects=[];
+    const push=(kind,rowId,x,y,w,h)=>rects.push({kind,rowId:rowId??null,x,y,w,h});
+    if(module.type==='identity') {
+      if(primary){push('identity-meta',null,0,0,340,90);push('portrait',null,0,90,340,455);}
+      else{push('identity-meta',null,15,8,310,310*90/340);push('portrait',null,22,104,184,184*455/340);}
+    }
+    if(module.type==='attributes') {
+      if(primary) {
+        push('hp',null,0,0,205,32);push('mp',null,0,40,205,32);
+        const radarY=Math.max(305,103+Math.min(items.length,8)*35+8);
+        items.forEach((row,index)=>push('attribute',row.id,0,index<8?103+index*35:radarY+196+(index-8)*41,205,33));
+        push('radar',null,0,radarY,205,180);
+        if(!items.length)push('collection',null,0,110,205,205*100/340);
+      } else {
+        push('hp',null,17,6,146,146*32/205);push('mp',null,177,6,146,146*32/205);
+        items.forEach((row,index)=>push('attribute',row.id,28,73+index*39,205,33));
+        const y=Math.max(180,94+items.length*39);push('radar',null,67,y,205,180);
+        if(!items.length)push('collection',null,17,65,306,90);
+      }
+    }
+    if(module.type==='equipment') {
+      items.forEach((row,index)=>push('equipment',row.id,primary?(index%3)*105:21+(index%3)*100,primary?Math.floor(index/3)*104:64+Math.floor(index/3)*136,96,104));
+      if(!items.length)push('collection',null,primary?0:17,primary?15:65,primary?316:306,primary?316*100/340:90);
+    }
+    if(module.type==='skills') {
+      items.forEach((row,index)=>push('skill',row.id,24,58+index*66,292,64));
+      if(!items.length)push('collection',null,17,65,306,90);
+    }
+    if(module.type==='background') {
+      let y=84;
+      fields.forEach(row=>{const size=naturalSize({kind:'story',rowId:row.id,data:d});push('story',row.id,28,y,size.w,size.h);y+=size.h+12;});
+      if(!fields.length)push('collection',null,17,75,306,90);
+    }
+    return rects;
+  }
+  window.WorkshopParts=Object.freeze({render,naturalSize,splitRects});
+})();
