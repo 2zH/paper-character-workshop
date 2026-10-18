@@ -81,6 +81,9 @@
     $('#unbind-button').hidden=!current.bindingEnabled;
     $('#base-button').hidden=current.bindingEnabled;
     $('#fit-button').hidden=!current.bindingEnabled;
+    const hasCutPaper=papers().some(paper=>['portrait','hp','mp','attribute','radar','equipment','skill'].includes(paper.kind));
+    $('#layers-button').disabled=!hasCutPaper;
+    if(!hasCutPaper)setLayersOpen(false);
     $('#assembly-caption').textContent=current.bindingEnabled?'Shift 多选 · G 组合 / Shift+G 解组 · 拖四角缩放 · A / D 旋转 · 双击填写':'Shift 多选 · G 组合 / Shift+G 解组 · 拖四角缩放 · A / D 旋转 · 双击填写';
   }
   function pieceHTML(module) {
@@ -126,6 +129,7 @@
   function render() { syncAtomicRows();selectedIds=new Set([...selectedIds].filter(id=>paperById(id))); if(editingId&&!paperById(editingId)){editingId=null;settingsId=null;}renderNavigation();renderBoard();if(splitLegacyPapers()){renderNavigation();renderBoard();}if(!paperById(selectedId))selectedId=papers().find(p=>p.type===steps[current.step].type)?.id||papers()[0]?.id;syncPaperSelection();renderInspector(); }
   function chooseModule(id,{scroll=false,edit=false,additive=false}={}) {
     flushEdit();
+    if(edit)setLayersOpen(false);
     if(selectionVisible)selectedIds=new Set(selectionMembers().map(paper=>paper.id));
     const linked=linkedPapers(id);
     if(additive){
@@ -159,6 +163,13 @@
     $('#component-dialog').close(); chooseModule(selectedId,{scroll:true});
   }
   const clamp = (value,min,max) => Math.min(max,Math.max(min,value));
+  // Peeling is a view of the two sheets, never a change to their saved placement.
+  function setLayersOpen(open) {
+    document.body.classList.toggle('layers-open',open);
+    const button=$('#layers-button'),note=$('#layers-note');
+    if(button){button.textContent=open?'盖回纸面':'揭开纸面';button.title=open?'将镂空面纸合回彩绘底纸':'揭开镂空面纸，看看下面的彩绘底纸';button.setAttribute('aria-pressed',String(open));}
+    if(note)note.hidden=!open;
+  }
   function linkedPapers(id) {
     const paper=paperById(id);if(!paper)return [];
     return paper.groupId?papers().filter(item=>item.groupId===paper.groupId):[paper];
@@ -424,7 +435,7 @@
   function renderLibrary() {
     $('#character-library').innerHTML=[...characters].reverse().map(record=>`<div class="character-record"><div class="record-icon">${record.status==='complete'?'✧':'✎'}</div><div><b>${esc(characterName(record))}</b><small>${record.status==='complete'?'已装订':'草稿'} · ${M.getPapers(record).length} 张纸片 · ${new Date(record.updatedAt).toLocaleDateString('zh-CN')}</small></div><div class="record-actions"><button data-action="open-character" data-id="${record.id}">${record.id===current.id?'正在编辑':'打开'}</button><button data-action="clone-character" data-id="${record.id}">复制</button></div></div>`).join('');
   }
-  function switchCharacter(record) { flushEdit();persist();current=record;editingId=null;settingsId=null;selectionVisible=false;selectedId=papers().find(item=>item.type===steps[current.step].type)?.id||current.modules[0]?.id;undoStack=[];preview=false;document.body.classList.remove('card-preview');$('#preview-button').textContent='预览整卡';render();persist();$('#library-dialog').close();window.scrollTo({top:0,behavior:motion()}); }
+  function switchCharacter(record) { flushEdit();persist();setLayersOpen(false);current=record;editingId=null;settingsId=null;selectionVisible=false;selectedId=papers().find(item=>item.type===steps[current.step].type)?.id||current.modules[0]?.id;undoStack=[];preview=false;document.body.classList.remove('card-preview');$('#preview-button').textContent='预览整卡';render();persist();$('#library-dialog').close();window.scrollTo({top:0,behavior:motion()}); }
   function createCharacter(sample) { switchCharacter(M.createCharacter({sample}));toast(sample?'已放入一份独立的骑士示例。':'新的空白角色已经铺开。'); }
 
   const atomicTypes={
@@ -613,6 +624,11 @@
     const formButton=event.target.closest('[data-form-action]');if(formButton){if(formButton.dataset.formAction!=='toggle-budget')formAction(formButton);return;}
     const button=event.target.closest('[data-action]');if(!button)return;
     const action=button.dataset.action,id=button.closest('[data-module-id]')?.dataset.moduleId;
+    if(action==='layers'){
+      const open=!document.body.classList.contains('layers-open');
+      if(open&&editingId)finishPaperEditing();
+      setLayersOpen(open);announce(open?'镂空面纸已揭开，下面是彩绘底纸。仍可拖动整片或整组。':'两层纸已合回原位。');return;
+    }
     if(action==='group-papers'){groupSelection();return;}
     if(action==='ungroup-papers'){ungroupSelection();return;}
     if(action==='clear-selection'){clearPaperSelection();return;}
@@ -669,6 +685,10 @@
   });
   document.addEventListener('dblclick',event=>{
     if(preview||event.target.closest('input,textarea,select'))return;
+    if(document.body.classList.contains('layers-open')){
+      const paper=event.target.closest('.atomic-piece');
+      if(paper&&event.target.closest('.piece-content')){event.preventDefault();chooseModule(paper.dataset.moduleId,{edit:true});return;}
+    }
     const field=event.target.closest('[data-inline-path]');if(!field)return;
     event.preventDefault();const id=field.closest('[data-module-id]').dataset.moduleId,path=field.dataset.inlinePath;
     chooseModule(id,{edit:true});document.querySelector(`[data-module-id="${id}"] [data-inline-editor][data-path="${CSS.escape(path)}"]`)?.focus({preventScroll:true});
@@ -690,7 +710,8 @@
   });
   document.addEventListener('blur',event=>{if(event.target.matches('[data-path]')){normalizeField(event.target);flushEdit();}},true);
   document.addEventListener('keydown',event=>{
-    if(event.isComposing||$('dialog[open]')||preview)return;
+    if(event.isComposing||$('dialog[open]'))return;
+    if(preview){if(event.key==='Escape')setLayersOpen(false);return;}
     const command=event.metaKey||event.ctrlKey;
     const rotation=!command&&!event.altKey&&(event.key.toLowerCase()==='a'||event.key.toLowerCase()==='d');
     // Pointer capture can leave keyboard focus in the inspector or on another paper.
@@ -700,7 +721,7 @@
     if(drag){if(rotation){event.preventDefault();rotateHeldPaper(event.key.toLowerCase()==='a'?-3:3);}return;}
     if(event.target.closest('input,textarea,select,[contenteditable]:not([contenteditable="false"]),[role="textbox"],.inspector'))return;
     if(command&&event.key.toLowerCase()==='z'&&!event.shiftKey&&!event.altKey){event.preventDefault();undo();return;}
-    if(event.key==='Escape'){clearPaperSelection();return;}
+    if(event.key==='Escape'){if(document.body.classList.contains('layers-open')){setLayersOpen(false);return;}clearPaperSelection();return;}
     if(!selectionVisible||!activeModule()||event.altKey)return;
     const focusedPaper=event.target.closest('.paper-piece');
     if(focusedPaper&&!selectionMembers().some(item=>item.id===focusedPaper.dataset.moduleId))return;
@@ -857,7 +878,7 @@
     const source=event.target.closest('.paper-piece')||(event.target.closest('[data-group-resize]')?document.querySelector(`[data-module-id="${selectedId}"]`):null);if(!source||event.button!==0||preview||drag||resizeDrag)return;
     if(event.shiftKey&&!event.target.closest('button,input,textarea,select,summary')){event.preventDefault();suppressClickUntil=Date.now()+350;chooseModule(source.dataset.moduleId,{additive:true});return;}
     const resizeHandle=event.target.closest('[data-resize]');if(resizeHandle){startResize(event,source,resizeHandle);return;}
-    if(!event.target.closest('.piece-content')||event.target.closest('button,a,input,textarea,select,summary,.binding-popover')||source.classList.contains('is-editing'))return;
+    if(!event.target.closest('.piece-content')||event.target.closest('button,a,input,textarea,select,summary,.binding-popover,.atomic-popover')||source.classList.contains('is-editing'))return;
     flushEdit();event.preventDefault();
     const module=paperById(source.dataset.moduleId);if(!module?.pose)return;
     const board=$('#paper-board').getBoundingClientRect(),w=parseFloat(source.style.width)||source.offsetWidth,h=parseFloat(source.style.height)||source.offsetHeight;
@@ -897,10 +918,10 @@
       syncPaperSelection();
       persist();renderNavigation();renderInspector();if(!cancelled)focusPaper();announce(cancelled?'纸片已回到原处。':ended.module.mounted?'组件已拼入整卡。':'纸片已经放下，桌面布局已保存。');
     }else if(!cancelled){
-      const repeated=ended.fieldPath&&lastPaperTap?.id===ended.id&&lastPaperTap.path===ended.fieldPath&&Date.now()-lastPaperTap.time<550;
+      const repeated=lastPaperTap?.id===ended.id&&Date.now()-lastPaperTap.time<550&&(document.body.classList.contains('layers-open')||ended.fieldPath&&lastPaperTap.path===ended.fieldPath);
       lastPaperTap={id:ended.id,path:ended.fieldPath,time:Date.now()};
       chooseModule(ended.id,{edit:!!repeated});
-      if(repeated){suppressClickUntil=Date.now()+350;document.querySelector(`[data-module-id="${ended.id}"] [data-inline-editor][data-path="${CSS.escape(ended.fieldPath)}"]`)?.focus({preventScroll:true});}
+      if(repeated){suppressClickUntil=Date.now()+350;if(ended.fieldPath)document.querySelector(`[data-module-id="${ended.id}"] [data-inline-editor][data-path="${CSS.escape(ended.fieldPath)}"]`)?.focus({preventScroll:true});}
     }
     drag=null;updateGroupSelection();
   }
