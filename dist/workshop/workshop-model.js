@@ -33,7 +33,7 @@
     if (type === 'skills') data = { budget: null, rules: { enabled: false, min: null, max: null, integer: false }, items: SKILLS.map(function (a) { return { id: uid('skill'), name: a[0], value: a[1] }; }) };
     if (type === 'equipment') data = { items: GEAR.map(function (a, i) { return { id: uid('gear'), name: a[0], detail: a[1], quantity: 1, weight: a[2], equipped: true, assetIndex: i }; }) };
     if (type === 'background') data = { fields: FIELDS.map(function (label, i) { return { id: uid('story'), label: label, value: FIELD_SAMPLES[i] }; }) };
-    return { id: uid('module'), type: type, title: TITLES[type], width: type === 'background' ? 'full' : 'half', pose: null, mounted: false, data: data };
+    return { id: uid('module'), type: type, title: TITLES[type], width: type === 'background' ? 'full' : 'half', pose: null, cardPose: null, paperWidth: null, mounted: false, data: data };
   }
 
   function createCharacter(options) {
@@ -140,6 +140,20 @@
         z: poseNumber(value.z, 1, 1, 10000, true, label + '叠放层级')
       };
     }
+    function cardPose(value, label) {
+      if (value === null || value === undefined) return null;
+      if (!plain(value)) { warn(label, '无效底卡位置已清空。'); return null; }
+      return {
+        x: poseNumber(value.x, 0, -600, 1200, false, label + '横坐标'),
+        y: poseNumber(value.y, 0, -870, 2600, false, label + '纵坐标'),
+        width: poseNumber(value.width, 240, 40, 2400, false, label + '宽度'),
+        angle: poseNumber(value.angle, 0, -15, 15, false, label + '旋转角')
+      };
+    }
+    function paperWidth(value, label) {
+      var width = optionalNumber(value, label);
+      return width === null ? null : poseNumber(width, 1, 1, 400, false, label);
+    }
     function id(value, prefix, label) {
       if (typeof value === 'string' && /^[A-Za-z0-9][A-Za-z0-9_-]{0,79}$/.test(value) && !usedIds.has(value)) { usedIds.add(value); return value; }
       var fixed = uid(prefix);
@@ -177,7 +191,7 @@
       if (!plain(item) || TYPES.indexOf(item.type) < 0) { warn(label, '已跳过未知或无效组件。'); return; }
       var d = plain(item.data) ? item.data : {};
       if (!plain(item.data)) warn(label, '无效内容已替换为空白内容。');
-      var result = { id: id(item.id, 'module', label), type: item.type, title: text(item.title, TITLES[item.type], 80, label + '标题'), width: item.width === 'full' ? 'full' : 'half', pose: pose(item.pose, label + '纸桌位置'), mounted: item.mounted === true, data: {} };
+      var result = { id: id(item.id, 'module', label), type: item.type, title: text(item.title, TITLES[item.type], 80, label + '标题'), width: item.width === 'full' ? 'full' : 'half', pose: pose(item.pose, label + '纸桌位置'), cardPose: cardPose(item.cardPose, label + '底卡位置'), paperWidth: paperWidth(item.paperWidth, label + '散片宽度'), mounted: item.mounted === true, data: {} };
       if (item.mounted !== undefined && typeof item.mounted !== 'boolean') warn(label + '装订状态', '无效状态已改为散放。');
       if (item.width !== 'full' && item.width !== 'half') warn(label, '无效宽度已改为半幅。');
       if (item.type === 'identity') {

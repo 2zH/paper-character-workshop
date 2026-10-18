@@ -31,52 +31,66 @@
     if(module.type==='background')h=Math.max(285,132+(data.fields||[]).reduce((sum,f)=>sum+46+Math.max(1,Math.ceil(String(f.value||'').length/19))*23,0));
     return width/340*h;
   }
+  function naturalSize(module) {
+    const size=slots[module.type];
+    return size?{w:size.w,h:size.h}:{w:340,h:appendixHeight(module,340)};
+  }
   function layout(character, width, {maxCardWidth=620} = {}) {
     width=Math.max(280,finite(width,800));
     const frameWidth=Math.min(maxCardWidth,width-32),scale=frameWidth/600;
     const frame={x:(width-frameWidth)/2,y:20,width:frameWidth,height:870*scale};
-    const placed={},primaryIds=[],appendixIds=[],mapped={};
+    const modules=character.modules||[],placed={},mapped={};
+    const primaryIds=modules.filter(module=>slots[module.type]).map(module=>module.id);
+    const appendixIds=modules.filter(module=>!slots[module.type]&&module.mounted===true).map(module=>module.id);
     for(const [type,box] of Object.entries(slots))mapped[type]={x:frame.x+box.x*scale,y:frame.y+box.y*scale,w:box.w*scale,h:box.h*scale};
     const looseStart=frame.y+frame.height+45;
-    const looseModules=(character.modules||[]).filter(module=>module.mounted===false);
+    const looseModules=modules.filter(module=>module.mounted===false);
     const looseWidth=width*.4575,looseGap=28;
+    const looseHeightOf=module=>{const size=naturalSize(module);return looseWidth*size.h/size.w;};
     let looseHeight=0;
     for(let index=0;index<looseModules.length;index+=2) {
-      looseHeight+=Math.max(appendixHeight(looseModules[index],looseWidth),looseModules[index+1]?appendixHeight(looseModules[index+1],looseWidth):0)+looseGap;
+      looseHeight+=Math.max(looseHeightOf(looseModules[index]),looseModules[index+1]?looseHeightOf(looseModules[index+1]):0)+looseGap;
     }
     let bottom=looseModules.length?looseStart+looseHeight+20:frame.y+frame.height+38,rowY=bottom,rowH=0,column=0;
-    const appendixWidth=Math.min(340,(frameWidth-22)/2),gap=22;
-    const occupied=new Set();
-    (character.modules||[]).filter(module=>module.mounted===true).forEach(module=>{
-      if(slots[module.type]&&!occupied.has(module.type)) {
-        occupied.add(module.type); primaryIds.push(module.id);placed[module.id]={...mapped[module.type]};return;
+    const appendixWidth=Math.min(340,(frameWidth-22)/2),gap=22,defaultCounts={};
+    modules.filter(module=>module.mounted===true).forEach(module=>{
+      const size=naturalSize(module),pose=module.cardPose;
+      if(pose&&typeof pose==='object') {
+        const w=Math.max(1,finite(pose.width,size.w))*scale;
+        placed[module.id]={x:frame.x+finite(pose.x)*scale,y:frame.y+finite(pose.y)*scale,w,h:w*size.h/size.w,angle:finite(pose.angle)};
+        bottom=Math.max(bottom,placed[module.id].y+placed[module.id].h+25);
+        return;
       }
-      appendixIds.push(module.id);
+      if(slots[module.type]) {
+        const offset=(defaultCounts[module.type]||0)*14*scale;
+        defaultCounts[module.type]=(defaultCounts[module.type]||0)+1;
+        placed[module.id]={...mapped[module.type],x:mapped[module.type].x+offset,y:mapped[module.type].y+offset,angle:0};
+        bottom=Math.max(bottom,placed[module.id].y+placed[module.id].h+25);
+        return;
+      }
       const full=module.width==='full'||module.type==='background';
       if(full&&column){rowY+=rowH+gap;column=0;rowH=0;}
-      const w=full?frameWidth:appendixWidth,h=appendixHeight(module,w);
-      placed[module.id]={x:frame.x+(column?appendixWidth+gap:0),y:rowY,w,h};
+      const w=full?frameWidth:appendixWidth,h=w*size.h/size.w;
+      placed[module.id]={x:frame.x+(column?appendixWidth+gap:0),y:rowY,w,h,angle:0};
       if(full){rowY+=h+gap;rowH=0;column=0;} else if(column){rowY+=Math.max(rowH,h)+gap;rowH=0;column=0;}else{column=1;rowH=h;}
     });
     bottom=Math.max(bottom,rowY+rowH);
-    return {frame,slots:mapped,placements:placed,primaryIds,appendixIds,looseStart,looseHeight,height:bottom+25};
+    return {frame,slots:mapped,referenceSlots:slots,placements:placed,primaryIds,appendixIds,looseStart,looseHeight,height:bottom+25};
   }
   function renderBase(character, geometry) {
     const id=safeId(character.id),outer=roughRect(8,5,581,854,8,1.5);
-    const primary=(character.modules||[]).filter(module=>geometry.primaryIds.includes(module.id));
-    const present=new Set(primary.map(module=>module.type));
-    const tiny=roughRect(389,642,168,180,18,1.7);
+    const hasMounted=(character.modules||[]).some(module=>module.mounted===true);
     const threads=Array.from({length:148},(_,i)=>{
       const side=i%4,along=noise(i+13),x=side===0?8+along*581:side===1?589:side===2?589-along*581:8,y=side===0?5:side===1?5+along*854:side===2?859:859-along*854;
       return `<path d="M${x.toFixed(2)} ${y.toFixed(2)}l${side===1?2:side===3?-2:.7} ${side===0?-2:side===2?2:.6}" stroke="${i%3?'#eee4cc':'#b4a58a'}" stroke-width=".65" opacity=".58"/>`;
     }).join('');
-    const hints=Object.entries(slots).filter(([type])=>!present.has(type)).map(([type,box])=>`<button type="button" class="binding-empty-slot binding-empty-${type}" data-binding-slot="${type}" data-action="mount-type" data-type="${type}" aria-label="放入${{identity:'身份',attributes:'属性',equipment:'装备'}[type]}组件" style="${pos(box.x,box.y,box.w,box.h,600,870)}"><span>${{identity:'身份纸片',attributes:'属性纸片',equipment:'装备纸片'}[type]}</span><small>拖入或点击放回</small></button>`).join('');
-    return `<div class="binding-base" style="left:${geometry.frame.x}px;top:${geometry.frame.y}px;width:${geometry.frame.width}px;height:${geometry.frame.height}px" aria-label="整张纸雕角色卡底板"><svg viewBox="0 0 600 870" class="binding-paper-svg" aria-hidden="true"><defs><pattern id="${id}-fiber" width="600" height="870" patternUnits="userSpaceOnUse"><image href="assets/paper-fiber.png" width="600" height="870" preserveAspectRatio="xMidYMid slice"/></pattern><filter id="${id}-edge" x="-10%" y="-10%" width="125%" height="125%"><feDropShadow dx=".45" dy=".8" stdDeviation=".2" flood-color="#f3e9d0" flood-opacity=".95"/><feDropShadow dx=".85" dy="1.8" stdDeviation=".35" flood-color="#a3987d" flood-opacity=".75"/><feDropShadow dx="1.8" dy="3.2" stdDeviation="1.35" flood-color="#342d20" flood-opacity=".46"/></filter><radialGradient id="${id}-aged"><stop offset="70%" stop-color="#695b37" stop-opacity="0"/><stop offset="100%" stop-color="#695b37" stop-opacity=".1"/></radialGradient></defs><g filter="url(#${id}-edge)"><path d="${outer}" fill="#eaddba"/><path d="${outer}" fill="url(#${id}-fiber)"/><path d="${outer}" fill="#f5edd8" opacity=".34"/><path d="${outer}" fill="url(#${id}-aged)"/><path d="${outer}" fill="none" stroke="#b6aa8e" stroke-width="1.2" opacity=".5"/></g>${threads}<path d="${tiny}" fill="#cbbb9455"/>${cutEdges(tiny,1.35)}<g stroke="#494135" fill="none" opacity=".8"><path d="M44 613L125 616M129 615l12-3M149 615l31 2M189 615l17-9l17 9l-17 5l-17-5M234 617l26-2M268 616l74-2" stroke-width="2"/><path d="M46 607l7 8l-8 8l-7-8Z M338 607l9 7l-8 7l-7-7Z" fill="#494135"/><path d="M527 76q-20-22-41-5l-9 16l21 12l29-3q15-10 0-20M488 78l3 6M500 78l2 6M477 75l-11-8l-4 5l13 10M521 91q-9-11 2-15q17 0 13 17" stroke-width="1.6"/></g></svg><div class="binding-tab"><span>角 色</span><em>Character</em></div><div class="binding-name-tape"></div><div class="binding-tiny"><img src="assets/chibi-cutout.png" alt="冒险者的小幅纸雕剪影"><small>NO. 01</small></div><span class="binding-footer">A LITTLE PAPER ADVENTURE</span>${hints}</div>`;
+    const hint=hasMounted?'':'<div class="binding-empty-hint">把纸片拖到这里，自由拼成你的角色卡</div>';
+    return `<div class="binding-base" style="left:${geometry.frame.x}px;top:${geometry.frame.y}px;width:${geometry.frame.width}px;height:${geometry.frame.height}px" aria-label="整张纸雕角色卡底板"><svg viewBox="0 0 600 870" class="binding-paper-svg" aria-hidden="true"><defs><pattern id="${id}-fiber" width="600" height="870" patternUnits="userSpaceOnUse"><image href="assets/paper-fiber.png" width="600" height="870" preserveAspectRatio="xMidYMid slice"/></pattern><filter id="${id}-edge" x="-10%" y="-10%" width="125%" height="125%"><feDropShadow dx=".45" dy=".8" stdDeviation=".2" flood-color="#f3e9d0" flood-opacity=".95"/><feDropShadow dx=".85" dy="1.8" stdDeviation=".35" flood-color="#a3987d" flood-opacity=".75"/><feDropShadow dx="1.8" dy="3.2" stdDeviation="1.35" flood-color="#342d20" flood-opacity=".46"/></filter><radialGradient id="${id}-aged"><stop offset="70%" stop-color="#695b37" stop-opacity="0"/><stop offset="100%" stop-color="#695b37" stop-opacity=".1"/></radialGradient></defs><g filter="url(#${id}-edge)"><path d="${outer}" fill="#eaddba"/><path d="${outer}" fill="url(#${id}-fiber)"/><path d="${outer}" fill="#f5edd8" opacity=".34"/><path d="${outer}" fill="url(#${id}-aged)"/><path d="${outer}" fill="none" stroke="#b6aa8e" stroke-width="1.2" opacity=".5"/></g>${threads}</svg><div class="binding-tab"><span>角 色</span><em>Character</em></div><span class="binding-footer">A LITTLE PAPER ADVENTURE</span>${hint}</div>`;
   }
   function identity(module) {
     const data=module.data||{},portrait=data.portrait==='assets/chibi-cutout.png'?data.portrait:'assets/knight-cutout.png';
     const path='M20 102 L99 102 Q113 103 117 87 L327 85 L333 91 L332 485 L304 486 Q291 488 289 517 L20 517 L17 497 L19 123 Z';
-    return `<div class="binding-module binding-module-identity"><div class="binding-character-name" style="${pos(100,12,235,36,340,545)}">${ink('data.name',data.name||'尚未署名的旅人','角色姓名')}</div><div class="binding-identity-meta" style="${pos(181,-50,369,32,340,545)}">${ink('data.occupation',data.occupation||'写下职业','职业')}<i>·</i>${ink('data.age',data.age??'年龄','年龄','number')}<small>岁</small></div><div class="binding-level-disc" style="${pos(16,36,60,59,340,545)}">♢</div><div class="binding-level" style="${pos(85,44,122,43,340,545)}"><b>LV:</b>${ink('data.level',String(data.level??1).padStart(2,'0'),'等级','number')}</div><div class="binding-portrait-wash" style="${pos(20,89,312,429,340,545)}"></div><img class="binding-knight" src="${portrait}" alt="钢笔与彩铅绘制的红发骑士" style="${pos(25,95,298,416,340,545)}"><svg class="binding-cut-lines" viewBox="0 0 340 545" aria-hidden="true">${cutEdges(path,1.7)}<path d="M109 38Q217 42 337 37" stroke="#453b2e" stroke-width="1.5" fill="none" opacity=".7"/><path d="M56 124l-4 12l-10 3l9 5l2 12l6-12l11-3l-11-4Z M289 117l-6 16l16 5l6-17Z" fill="none" stroke="#87785a" stroke-width="2" opacity=".55"/></svg><div class="binding-stars" style="${pos(0,336,26,124,340,545)}" aria-hidden="true">★<br>★<br>★</div><details class="binding-appearance" style="${pos(37,521,279,20,340,545)}"><summary>人物手记 · 外貌</summary><div class="binding-popover">${ink('data.appearance',data.appearance||'写下初见时的模样','外貌描述','',' data-inline-multiline="true"')}</div></details></div>`;
+    return `<div class="binding-module binding-module-identity"><div class="binding-character-name" style="${pos(20,0,310,34,340,545)}">${ink('data.name',data.name||'尚未署名的旅人','角色姓名')}</div><div class="binding-identity-meta" style="${pos(185,49,144,28,340,545)}">${ink('data.occupation',data.occupation||'写下职业','职业')}<i>·</i>${ink('data.age',data.age??'年龄','年龄','number')}<small>岁</small></div><div class="binding-level-disc" style="${pos(16,36,60,59,340,545)}">♢</div><div class="binding-level" style="${pos(85,44,96,43,340,545)}"><b>LV:</b>${ink('data.level',String(data.level??1).padStart(2,'0'),'等级','number')}</div><div class="binding-portrait-wash" style="${pos(20,89,312,429,340,545)}"></div><img class="binding-knight" src="${portrait}" alt="钢笔与彩铅绘制的红发骑士" style="${pos(25,95,298,416,340,545)}"><svg class="binding-cut-lines" viewBox="0 0 340 545" aria-hidden="true">${cutEdges(path,1.7)}<path d="M20 34Q171 38 330 33" stroke="#453b2e" stroke-width="1.5" fill="none" opacity=".7"/><path d="M56 124l-4 12l-10 3l9 5l2 12l6-12l11-3l-11-4Z M289 117l-6 16l16 5l6-17Z" fill="none" stroke="#87785a" stroke-width="2" opacity=".55"/></svg><div class="binding-stars" style="${pos(0,336,26,124,340,545)}" aria-hidden="true">★<br>★<br>★</div><details class="binding-appearance" style="${pos(37,521,279,20,340,545)}"><summary>人物手记 · 外貌</summary><div class="binding-popover">${ink('data.appearance',data.appearance||'写下初见时的模样','外貌描述','',' data-inline-multiline="true"')}</div></details></div>`;
   }
   function attrDetails(items,start) {
     return items.slice(start).map((item,i)=>{const n=start+i;return `<div class="binding-extra-row"><b>${ink(`data.items.${n}.key`,item.key||`A${n+1}`,'属性缩写')}</b>${ink(`data.items.${n}.name`,item.name||'属性名称','属性名称')}${ink(`data.items.${n}.value`,finite(item.value),'属性数值','number')}</div>`;}).join('');
@@ -116,5 +130,5 @@
     return `<div class="binding-module binding-module-equipment">${windows}<details class="binding-extra binding-inventory"><summary>${items.length>6?`还有 ${items.length-6} 件 · `:''}行囊清单 ↗</summary><div class="binding-popover"><h4>行囊 · ${items.length} 件</h4>${inventory||'<p>行囊还是空的。</p>'}</div></details></div>`;
   }
   function renderModule(module) {return ({identity,attributes,equipment}[module.type]||(()=>''))(module);}
-  window.WorkshopBinding=Object.freeze({layout,renderBase,renderModule});
+  window.WorkshopBinding=Object.freeze({layout,renderBase,renderModule,naturalSize,referenceSlots:slots});
 })();

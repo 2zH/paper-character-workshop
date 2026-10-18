@@ -13,7 +13,7 @@
 .binding-module{position:relative;width:100%;height:100%;color:#44372a;font-family:var(--hand);container-type:inline-size;isolation:isolate}
 .binding-module>*{position:absolute}.binding-cut-lines{position:absolute;inset:0;width:100%;height:100%;overflow:visible;pointer-events:none;z-index:2}
 .binding-character-name{z-index:3;font:7.9cqw/1.2 var(--hand);letter-spacing:-.5px;transform:rotate(-1deg);text-shadow:.2px .3px 0 #846d5255;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:flex;align-items:center}
-.binding-identity-meta{z-index:4;display:flex;gap:8px;align-items:center;justify-content:center;color:#8d7957;font:4.2cqw var(--serif);white-space:nowrap}.binding-identity-meta i{font-style:normal;color:#b49e79}.binding-identity-meta small{font-size:.76em}.binding-identity-meta [data-inline-path='data.occupation']{max-width:77%;overflow:hidden;text-overflow:ellipsis}
+.binding-identity-meta{z-index:4;display:flex;gap:4px;align-items:center;justify-content:center;color:#8d7957;font:3.3cqw var(--serif);white-space:nowrap}.binding-identity-meta i{font-style:normal;color:#b49e79}.binding-identity-meta small{font-size:.76em}.binding-identity-meta [data-inline-path='data.occupation']{max-width:77%;overflow:hidden;text-overflow:ellipsis}
 .binding-level-disc{display:grid;place-items:center;font:10cqw var(--hand);color:#5e3d36;background:radial-gradient(ellipse,#9c505f9c 20%,#c3888d88 50%,transparent 66%);border-radius:50%;transform:rotate(-9deg);border:1px solid #8a785b6b;box-shadow:inset 1px 1px 2px #6c594e4d,1px 1px 0 #fff4d5}
 .binding-level{display:flex;gap:5px;align-items:baseline;font:6.5cqw var(--hand);line-height:1}.binding-level b{font:700 11cqw Georgia,serif}
 .binding-portrait-wash{background:radial-gradient(ellipse at 45% 76%,#c5b86155 5%,#d5c68e33 50%,transparent 75%);box-shadow:inset 2px 3px 4px #6b5d3933;clip-path:polygon(0 4%,25% 4%,31% 0,99% 0,100% 92%,91% 92%,86% 100%,0 100%)}
@@ -28,3 +28,8 @@
 .binding-module details[open]{z-index:30}.binding-module [data-inline-path]{cursor:text;pointer-events:auto}.binding-module [data-inline-path]:hover{background:#fff3cf45;border-radius:1px}
 @media print{.binding-base{filter:none}.binding-module .binding-popover{box-shadow:none}.binding-module details:not([open]){display:none}.binding-empty-slot{border:0}}
 @media(prefers-reduced-motion:reduce){.binding-gear-window{transition:none}}
+
+.binding-empty-hint{position:absolute;left:15%;top:44%;width:70%;font:3cqw/1.9 var(--serif);text-align:center;color:#9e8b69aa;letter-spacing:1px;pointer-events:none}
+/* A thin paper skin travels with each cutout, on the desk and on a backing sheet. */
+.binding-primary>.piece-content:before{content:'';position:absolute;inset:-5px;background:linear-gradient(120deg,#fff6df22,#c8b9940d),#ede3ca url('../assets/paper-fiber.png') center/600px;clip-path:polygon(.4% .2%,15% 0,34% .25%,53% 0,76% .2%,99.7% 0,100% 19%,99.8% 39%,100% 62%,99.7% 81%,100% 99.7%,79% 100%,53% 99.8%,29% 100%,.2% 99.8%,0 76%,.3% 52%,0 27%);filter:drop-shadow(.5px 1px .5px #5f4d2a25);pointer-events:none;z-index:0}
+.binding-primary>.piece-content>.binding-module{z-index:1}
