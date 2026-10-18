@@ -251,7 +251,7 @@
   function frontZ() { return Math.min(10000,Math.max(0,...papers().map(module=>module.pose?.z||0))+1); }
   function tableTransform(x,y,angle,scale=1) { return `translate3d(${x}px,${y}px,0) rotate(${angle}deg) scale(${scale})`; }
   function boardGeometry() {
-    return current.bindingEnabled?Binding.layout({...current,modules:papers()},$('#paper-board').clientWidth,{maxCardWidth:preview||document.body.classList.contains('desk-fit')?Math.min(620,Math.max(340,(innerHeight-120)*600/870)):620}):null;
+    return current.bindingEnabled?Binding.layout({...current,modules:papers()},$('#paper-board').clientWidth,{maxCardWidth:preview||document.body.classList.contains('desk-fit')?Math.min(620,Math.max(340,(innerHeight-220)*600/870)):620}):null;
   }
   function rememberCardPlacement(module,x,y,width,angle) {
     const frame=bindingLayout.frame,scale=600/frame.width;

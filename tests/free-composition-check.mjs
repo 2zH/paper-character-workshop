@@ -129,7 +129,7 @@ check('preview and board-width changes preserve canonical composition through pe
 check('desk-fit permits drag and resize, then returns to full scale without changing composition',()=>{
   const c=fixture();Object.assign(c.modules[0],{mounted:false,cardPose:null,paperWidth:20,pose:{x:4,y:140,angle:2,z:3}});
   const t=setup(c,{viewportHeight:700});t.body.classList.add('desk-fit');t.layout();
-  near(t.state.bindingLayout.frame.width,400,'fit frame uses viewport height');
+  near(t.state.bindingLayout.frame.width,340,'fit view reserves room for the lifted continuous face');
   const start=point(t,0,0);downAt(t,start.x,start.y);t.move(500,430);t.key('d');t.up();
   assert.equal(module(t).mounted,true,'fit mode remains editable');
   near(t.papers.identity.offsetWidth,200,'fit docking preserves physical width');
@@ -137,7 +137,7 @@ check('desk-fit permits drag and resize, then returns to full scale without chan
   const canonical=plain(module(t).cardPose),fitPlacement=transform(t);
   t.body.classList.remove('desk-fit');t.layout();
   assert.deepEqual(plain(module(t).cardPose),canonical,'return to full size preserves card coordinates');
-  near(t.papers.identity.offsetWidth,fitPlacement.w*620/400,'paper scales with card');
+  near(t.papers.identity.offsetWidth,fitPlacement.w*620/340,'paper scales with card');
   const fullPlacement=transform(t);t.persist();
   const normalized=Model.normalizeCharacter(plain(t.state.saves.at(-1))).character;
   assert.deepEqual(normalized.modules[0].cardPose,canonical);
