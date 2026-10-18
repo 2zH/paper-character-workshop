@@ -8,10 +8,18 @@
 
 - 工坊页面：`dist/workshop.html`。
 - 本地试用地址：[纸雕车卡工坊](http://127.0.0.1:4378/workshop.html)。
-- 线上旧版地址：[纸雕车卡工坊](https://paper-adventure-ten-studies.shenzh2012.chatgpt.site/workshop.html)。本轮单张纸片与组合功能仅在本地提供，尚未发布到线上。
+- GitHub Pages：[纸雕车卡工坊](https://2zh.github.io/paper-character-workshop/)。首页直接打开当前工坊。
+- 在线视觉示例：[十个纸雕方向](https://2zh.github.io/paper-character-workshop/studies.html?v=1)。
+- 源码仓库：[2zH/paper-character-workshop](https://github.com/2zH/paper-character-workshop)。
 - 原十个视觉变体：`dist/index.html`，可用 `?v=1` 至 `?v=10` 选择。
 
 用静态文件服务器打开 `dist/` 即可运行，无需安装依赖或执行构建。
+
+## 发布到 GitHub Pages
+
+推送 `main` 会自动检查角色模型与纸片交互，并发布到 GitHub Pages。`node scripts/build-pages.mjs` 将 `dist/` 复制到 `_site/`，把工坊设为首页，原十个视觉示例保留为 `studies.html`；本地开发入口保持原样。部署流程位于 `.github/workflows/pages.yml`。
+
+角色草稿保存在各站点的浏览器本地。要将本地试用地址的草稿带到线上，请先导出 JSON，再在在线工坊的「我的角色」中导入。
 
 ## 先做一张角色卡
 
