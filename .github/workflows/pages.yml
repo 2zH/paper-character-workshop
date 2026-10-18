@@ -29,8 +29,12 @@ jobs:
           node tests/group-composition-check.mjs
           node tests/layers-check.mjs
           node tests/unified-sheet-check.mjs
+          node tests/corner-peel-check.mjs
+          node tests/preserved-version-check.mjs
       - name: Prepare workshop home and design studies
-        run: node scripts/build-pages.mjs
+        run: |
+          node scripts/build-pages.mjs
+          node tests/preserved-version-check.mjs --built
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v4
         with:

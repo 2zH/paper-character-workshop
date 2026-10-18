@@ -1,0 +1,54 @@
+/* A painted sheet beneath a second, genuinely perforated sheet. The holes are
+   SVG luminance masks, so moving the upper sheet reveals the art underneath. */
+.atomic-paper.atomic-layered{display:block;padding:0;perspective:900px;--layer-x:-12%;--layer-y:-12%;--layer-turn:-5deg;--layer-yaw:-9deg}
+.atomic-paper.atomic-layered:before{display:none}
+.atomic-layered>.paper-underlay,.atomic-layered>.paper-cut-face{position:absolute;inset:0;width:100%;height:100%;overflow:visible;isolation:isolate}
+.atomic-layered>.paper-underlay{z-index:0;pointer-events:none}
+.paper-underlay:before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,#dbcda936,#b7a07814),#e4d7b7 url('../../../assets/paper-fiber.png') center/600px;clip-path:polygon(.4% .2%,15% 0,34% .25%,53% 0,76% .2%,99.7% 0,100% 19%,99.8% 39%,100% 62%,99.7% 81%,100% 99.7%,79% 100%,53% 99.8%,29% 100%,.2% 99.8%,0 76%,.3% 52%,0 27%);box-shadow:inset 0 0 14px #a9926033;filter:drop-shadow(.4px 1.1px .4px #77654175);z-index:-1;pointer-events:none}
+.atomic-layered>.paper-cut-face{z-index:2;pointer-events:none;transform-origin:10% 82%;transform:translate3d(0,0,0) rotate(0deg);filter:drop-shadow(.4px .8px .3px #a3927177) drop-shadow(1px 1.7px .9px #51422848);transition:transform .82s cubic-bezier(.2,.75,.18,1),filter .65s ease}
+.paper-underlay>*,.paper-cut-face>*{position:absolute}
+.paper-cut-face>.paper-cut-surface{position:absolute;inset:0;width:100%;height:100%;overflow:visible;z-index:0;pointer-events:none}
+.paper-cut-face>:not(.paper-cut-surface){z-index:1}
+.paper-cut-face .atomic-cut-lines{z-index:2}
+.atomic-layered .paper-cut-face [data-inline-path],.atomic-layered .paper-cut-face button,.atomic-layered .paper-cut-face details,.atomic-layered .paper-cut-face summary{pointer-events:auto}
+.atomic-layered .atomic-portrait-wash,.atomic-layered .atomic-gear-wash{box-shadow:none}
+.atomic-layered .atomic-portrait-wash{clip-path:none}
+.atomic-layered .atomic-resource-label{display:flex;align-items:center;width:auto;line-height:1}
+.atomic-layered .atomic-resource-trough{position:absolute;transform:none;width:auto;flex:none;border:0;border-radius:0;box-shadow:none}
+.atomic-layered .atomic-resource-pigment{overflow:hidden;background:#d8c9a5}
+.atomic-layered .atomic-resource-pigment>i{top:0;bottom:0;left:0;max-width:100%;box-shadow:inset 0 1px 3px #f2dfd044}
+.atomic-layered .atomic-resource-reading{background:transparent;overflow:visible}
+.atomic-layered .atomic-resource-reading>span{gap:3px;font:6.3cqw var(--hand)}
+.atomic-layered .atomic-attribute-label{display:flex;justify-content:center;flex-direction:column;line-height:.95}
+.atomic-layered .atomic-attribute-value{display:flex;align-items:center;justify-content:flex-end;width:auto}
+.atomic-layered .atomic-punched-dots{position:absolute;display:flex;gap:0;justify-content:space-between}
+.atomic-layered .atomic-punched-dots i{width:12.127%;height:100%;aspect-ratio:1;border-radius:45%;box-shadow:inset 0 .6px 1px #a38c4b33;outline:0}
+.atomic-layered .atomic-skill-trough{box-shadow:none}
+.atomic-layered .atomic-radar-svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+.atomic-layered .atomic-radar-svg text{font-family:var(--hand);fill:#77694e}
+.atomic-layered.atomic-portrait{--layer-x:-14%;--layer-y:-4%;--layer-turn:-5deg;--layer-yaw:-10deg}
+.atomic-layered.atomic-hp,.atomic-layered.atomic-mp{--layer-x:-12%;--layer-y:-48%;--layer-turn:-3deg;--layer-yaw:-7deg}
+.atomic-layered.atomic-attribute{--layer-x:-9%;--layer-y:-34%;--layer-turn:-2deg;--layer-yaw:-6deg}
+.atomic-layered.atomic-radar{--layer-x:-17%;--layer-y:-10%;--layer-turn:-6deg;--layer-yaw:-12deg}
+.atomic-layered.atomic-equipment{--layer-x:-23%;--layer-y:-12%;--layer-turn:-7deg;--layer-yaw:-12deg}
+.atomic-layered.atomic-skill{--layer-x:-9%;--layer-y:-27%;--layer-turn:-3deg;--layer-yaw:-8deg}
+.layers-open .atomic-layered>.paper-cut-face{transform:translate3d(var(--layer-x),var(--layer-y),24px) rotate(var(--layer-turn)) rotateY(var(--layer-yaw));filter:drop-shadow(.5px 1px .3px #b8a88b) drop-shadow(5px 9px 4px #3d2c1d55)}
+.layers-open .atomic-layered .paper-cut-face *{pointer-events:none!important}
+.layers-open .atomic-layered>.paper-underlay:before{filter:drop-shadow(.5px 1.5px .5px #77654185)}
+/* Keep writing and field focus on the closed physical surface. */
+.layers-open .paper-piece.is-editing .atomic-layered>.paper-cut-face{transform:none;filter:drop-shadow(.4px .8px .3px #a3927177) drop-shadow(1px 1.7px .9px #51422848)}
+.layers-open .paper-piece.is-editing .paper-cut-face [data-inline-path],.layers-open .paper-piece.is-editing .paper-cut-face input,.layers-open .paper-piece.is-editing .paper-cut-face textarea,.layers-open .paper-piece.is-editing .paper-cut-face button,.layers-open .paper-piece.is-editing .paper-cut-face summary{pointer-events:auto!important}
+.assembly{position:relative}
+.layers-open .assembly-caption{visibility:hidden}
+#layers-button[aria-pressed="true"]{background:#bfa77b;color:#30251b;border-color:#c5ab7b}
+.layers-note{position:absolute;top:0;left:4px;right:4px;z-index:2;display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:12px 24px;color:#c9b58f;font:11px var(--serif);margin:0;min-height:28px;letter-spacing:.3px}
+.layers-note[hidden]{display:none!important}
+.layers-note i{display:none}
+.layers-note>span{position:relative;display:inline-flex;align-items:center;gap:9px;white-space:nowrap}
+.layers-note>span:before{content:'';display:inline-block;width:24px;height:17px;background:#e8dabe url('../../../assets/paper-fiber.png') center/120px;box-shadow:1px 2px 2px #160d0980;transform:rotate(-6deg);clip-path:polygon(0 1%,99% 0,100% 97%,1% 100%)}
+.layers-note>span:first-child:before{background:radial-gradient(ellipse at center,transparent 30%,#e8dabe 32%);box-shadow:1px 2px 2px #160d0980}
+.layers-note>span:nth-child(2):before{background:linear-gradient(110deg,#bc7e7477,#cbbb8180),#dfd0ab url('../../../assets/paper-fiber.png') center/120px;transform:rotate(3deg)}
+.layers-note>small{color:#9f8a68;font:10px var(--serif);letter-spacing:0}
+@media(max-width:760px){.layers-note{gap:9px 16px;margin-bottom:28px;font-size:10px}.layers-note>small{display:none}.atomic-layered.atomic-portrait{--layer-x:-11%;--layer-y:-3%;--layer-turn:-4deg}}
+@media(prefers-reduced-motion:reduce){.atomic-layered>.paper-cut-face{transition:none}}
+@media print{.layers-note{display:none!important}.atomic-layered>.paper-cut-face,.layers-open .atomic-layered>.paper-cut-face{transform:none!important;transition:none!important;filter:none!important}.paper-underlay:before,.layers-open .atomic-layered>.paper-underlay:before{filter:none!important}.paper-cut-surface{-webkit-print-color-adjust:exact;print-color-adjust:exact}}

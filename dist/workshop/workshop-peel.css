@@ -1,0 +1,36 @@
+/* The corner grips live above the editable hit layer, outside the inert sheet. */
+.corner-peel-controls{position:absolute;left:0;top:0;width:600px;height:870px;transform-origin:0 0;z-index:10040;pointer-events:none;--corner-hit-size:48px}
+.corner-peel-controls[hidden],.layers-open .corner-peel-controls{display:none!important}
+.corner-peel-grip{position:absolute;display:grid;place-items:center;width:var(--corner-hit-size);height:var(--corner-hit-size);padding:0;border:0!important;border-radius:0;background:none!important;box-shadow:none!important;pointer-events:auto;touch-action:none;cursor:grab;outline:none;color:#e5d4ae;-webkit-tap-highlight-color:transparent}
+.corner-peel-grip[data-corner="tl"]{left:8px;top:7px;transform:translate(-50%,-50%);--curl-turn:0deg}
+.corner-peel-grip[data-corner="tr"]{left:588px;top:7px;transform:translate(-50%,-50%);--curl-turn:90deg}
+.corner-peel-grip[data-corner="br"]{left:588px;top:858px;transform:translate(-50%,-50%);--curl-turn:180deg}
+.corner-peel-grip[data-corner="bl"]{left:8px;top:858px;transform:translate(-50%,-50%);--curl-turn:270deg}
+.corner-peel-curl{position:relative;width:23px;height:23px;transform:rotate(var(--curl-turn));transform-origin:center;opacity:.65;transition:opacity .18s ease,filter .18s ease;filter:drop-shadow(1px 1px 1px #3a251d28)}
+.corner-peel-curl:before{content:"";position:absolute;left:10px;top:10px;width:16px;height:16px;clip-path:polygon(0 0,100% 0,0 100%);background:linear-gradient(135deg,#b9aa8b 0%,#e1d5b9 38%,#f6ecd4 65%,#fcf2dd 100%);border-top:1px solid #fff7e2;border-left:1px solid #fff7e2;box-shadow:1px 1px 1px #513d2777}
+.corner-peel-curl:after{content:"";position:absolute;left:9px;top:18px;width:23px;height:1px;background:#8b78544a;transform:rotate(-45deg);transform-origin:center}
+.corner-peel-grip:hover .corner-peel-curl,.corner-peel-grip:focus-visible .corner-peel-curl{opacity:1;filter:drop-shadow(1px 3px 2px #29191066)}
+.corner-peel-grip:focus-visible{outline:1px dashed #97734b;outline-offset:3px;border-radius:50%}
+.corner-peel-cue{position:absolute;top:calc(50% + 23px);left:50%;width:max-content;max-width:180px;padding:4px 9px;transform:translateX(-50%) translateY(-3px);font-family:inherit;font-size:11px;font-weight:400;line-height:1.7;letter-spacing:.06em;white-space:nowrap;background:#38271be8;border:1px solid #c0a97b45;color:#f1dfb9;box-shadow:0 2px 8px #170e0b2b;opacity:0;visibility:hidden;pointer-events:none;transition:opacity .18s ease,transform .18s ease,visibility .18s}
+.corner-peel-grip:hover .corner-peel-cue,.corner-peel-grip:focus-visible .corner-peel-cue{opacity:1;visibility:visible;transform:translateX(-50%) translateY(0)}
+.corner-peel-controls.is-active .corner-peel-cue,.corner-peel-controls.is-active .corner-peel-curl{opacity:0;visibility:hidden}
+.corner-peel-controls.is-active .corner-peel-grip{pointer-events:none}
+.corner-peel-controls.is-active .corner-peel-grip.is-held{pointer-events:auto;cursor:grabbing}
+body.is-corner-peeling,body.is-corner-peeling *{cursor:grabbing!important;user-select:none!important;-webkit-user-select:none!important}
+.card-sheet.is-corner-peeling>.card-face-shell>.card-face{opacity:0!important;transition:none!important}
+.card-sheet.is-corner-peeling>.card-face-shell{perspective:1700px;perspective-origin:50% 50%;transform-style:preserve-3d}
+.corner-peel-resources{position:absolute;inset:0;width:600px;height:870px;opacity:0;pointer-events:none;visibility:visible}.corner-peel-resources .card-face-surface{filter:none!important}
+.corner-peel-mesh{position:absolute;inset:0;width:600px;height:870px;transform-style:preserve-3d;pointer-events:none;isolation:auto}
+.corner-peel-band{position:absolute;inset:0;width:600px;height:870px;transform-origin:0 0;transform-style:preserve-3d;will-change:transform;pointer-events:none}
+.corner-peel-band-clip{position:absolute;inset:0;width:600px;height:870px;pointer-events:none;filter:brightness(var(--corner-band-light,1));overflow:visible}
+.card-sheet .corner-peel-copy,.layers-open .card-sheet .corner-peel-copy{position:absolute;inset:0;transform:none!important;filter:none!important;transition:none!important;will-change:auto;opacity:1!important;visibility:visible!important;backface-visibility:visible}
+.corner-peel-copy .card-face-surface{filter:drop-shadow(.55px 1.1px .4px #745c40aa)}
+.corner-peel-band.shows-paper-back .card-face-ink{visibility:hidden!important}
+/* Project the same perforated strips onto the stock along a soft overhead light. */
+.corner-peel-cast{position:absolute;inset:0;width:600px;height:870px;z-index:1;pointer-events:none;opacity:calc(.16 + var(--corner-peel-amount,0) * .16);filter:blur(calc(1px + var(--corner-peel-amount,0) * 7px));mix-blend-mode:multiply}
+.corner-peel-shadow-band,.corner-peel-shadow-clip{position:absolute;inset:0;width:600px;height:870px;transform-origin:0 0;pointer-events:none}
+.corner-peel-shadow-clip>svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible;filter:brightness(0)}
+.is-corner-peeling .paper-piece.sheet-attached .paper-cut-face>details[open],.is-corner-peeling .paper-piece.sheet-attached .atomic-paper>details[open]{opacity:0!important}
+.is-corner-peeling .paper-piece.sheet-attached .piece-edit-button,.is-corner-peeling .paper-piece.sheet-attached .paper-resize-handle,.is-corner-peeling .paper-group-frame,.is-corner-peeling .paper-piece.sheet-attached:before{visibility:hidden!important}
+@media(prefers-reduced-motion:reduce){.corner-peel-curl,.corner-peel-cue{transition:none}.corner-peel-band{will-change:auto}}
+@media print{.corner-peel-controls,.corner-peel-mesh,.corner-peel-cast,.corner-peel-resources{display:none!important}.card-sheet.is-corner-peeling>.card-face-shell>.card-face{opacity:1!important;visibility:visible!important}}

@@ -42,3 +42,6 @@ body.card-preview .paper-piece{position:absolute}body.card-preview .paper-board{
 .paper-piece:focus{outline:none}.paper-piece:focus-visible:before{content:'';position:absolute;inset:-5px;pointer-events:none;border:1px dashed #d7b87e99}
 .paper-piece .piece-content{touch-action:none}.is-dragging .piece-edit-button{pointer-events:none}
 @media print{.piece-edit-button{display:none!important}}
+
+/* Edition links; each edition saves its own character library. */
+.workshop-versions{display:flex;align-items:center;gap:12px;margin-right:auto;margin-left:22px;font:11px var(--serif);white-space:nowrap}.workshop-versions span{color:#cfb78f}.workshop-versions a{color:#a99575;text-decoration:none;border-bottom:1px solid #a9957544;padding:5px 0}.workshop-versions a:hover{color:#ead6ae;border-color:currentColor}@media(max-width:760px){.workshop-versions{margin-left:0;gap:10px;font-size:10px;order:3;width:100%;justify-content:flex-end}.atelier-header{height:auto;min-height:70px;padding-block:12px;flex-wrap:wrap;gap:12px}}@media print{.workshop-versions{display:none!important}}

@@ -2,13 +2,15 @@
 <html lang="zh-CN">
 <head>
   <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-  <meta name="theme-color" content="#30251f"><title>纸上冒险 · 车卡工坊</title>
-  <link rel="stylesheet" href="workshop/workshop.css?v=20261018-continuous-sheet-final2"><link rel="stylesheet" href="workshop/workshop-cards.css?v=20261018-continuous-sheet-final2"><link rel="stylesheet" href="workshop/workshop-inline.css?v=20261018-continuous-sheet-final2"><link rel="stylesheet" href="workshop/workshop-binding.css?v=20261018-continuous-sheet-final2"><link rel="stylesheet" href="workshop/workshop-composer.css?v=20261018-continuous-sheet-final2">
-  <link rel="stylesheet" href="workshop/workshop-parts.css?v=20261018-continuous-sheet-final2"><link rel="stylesheet" href="workshop/workshop-layers.css?v=20261018-continuous-sheet-final2"><link rel="stylesheet" href="workshop/workshop-sheet.css?v=20261018-continuous-sheet-final2">
+  <meta name="theme-color" content="#30251f"><title>纸上冒险 · 手揭车卡工坊</title>
+  <link rel="stylesheet" href="workshop/workshop.css?v=20261018-corner-peel-2"><link rel="stylesheet" href="workshop/workshop-cards.css?v=20261018-corner-peel-2"><link rel="stylesheet" href="workshop/workshop-inline.css?v=20261018-corner-peel-2"><link rel="stylesheet" href="workshop/workshop-binding.css?v=20261018-corner-peel-2"><link rel="stylesheet" href="workshop/workshop-composer.css?v=20261018-corner-peel-2">
+  <link rel="stylesheet" href="workshop/workshop-parts.css?v=20261018-corner-peel-2"><link rel="stylesheet" href="workshop/workshop-layers.css?v=20261018-corner-peel-2"><link rel="stylesheet" href="workshop/workshop-sheet.css?v=20261018-corner-peel-2">
+  <link rel="stylesheet" href="workshop/workshop-peel.css?v=20261018-corner-peel-2">
 </head>
 <body>
   <header class="atelier-header">
     <a class="atelier-brand" href="index.html?v=1">纸上冒险 <span>CHARACTER ATELIER</span></a>
+    <nav class="workshop-versions" aria-label="工坊版本"><span aria-current="page">手揭版</span><a href="workshop-original.html">GitHub 初版 ↗</a></nav>
     <div class="header-actions"><span id="save-status" role="status">保存在此浏览器</span><button data-action="undo" id="undo-button" disabled aria-label="撤销上一步">↶ 撤销</button><button data-action="library">我的角色</button><button data-action="new">新建角色</button></div>
   </header>
   <div class="journey-heading"><div><small>一张纸，一段尚未开始的冒险。</small><h1 id="character-heading">车卡工坊</h1></div><div class="journey-actions"><button data-action="open-base" id="base-button" class="button-cream">铺开底卡</button><button data-action="bind-all">参考排版</button><button data-action="unbind-all" id="unbind-button" hidden>全部拆出</button><button data-action="add">＋ 组件</button><button data-action="tidy">整理桌面</button><button data-action="fit" id="fit-button" hidden>看全底卡</button><button data-action="layers" id="layers-button" aria-pressed="false" aria-controls="paper-board" title="揭开整张面纸，窗口、纸筋和文字一起抬起">揭开纸面</button><button data-action="preview" id="preview-button">预览整卡</button><button data-action="export">导出角色 ↗</button></div></div>
@@ -31,6 +33,7 @@
   <dialog id="notice-dialog" class="paper-dialog"><header><h2 id="notice-title">导入提示</h2><button data-action="close-dialog" aria-label="关闭提示">×</button></header><div id="notice-content"></div><footer><button data-action="close-dialog" class="button-ink">知道了</button></footer></dialog>
   <input id="import-file" type="file" accept="application/json,.json" hidden>
   <div id="toast" role="status" aria-live="polite"></div><div id="drag-announcement" class="sr-only" aria-live="polite"></div>
-  <script src="workshop/workshop-model.js?v=20261018-continuous-sheet-final2"></script><script src="workshop/workshop-forms.js?v=20261018-continuous-sheet-final2"></script><script src="workshop/workshop-cards.js?v=20261018-continuous-sheet-final2"></script><script src="workshop/workshop-binding.js?v=20261018-continuous-sheet-final2"></script><script src="workshop/workshop-parts.js?v=20261018-continuous-sheet-final2"></script><script src="workshop/workshop-sheet.js?v=20261018-continuous-sheet-final2"></script><script src="workshop/workshop.js?v=20261018-continuous-sheet-final2"></script>
+  <script src="workshop/workshop-peel.js?v=20261018-corner-peel-2"></script>
+  <script src="workshop/workshop-model.js?v=20261018-corner-peel-2"></script><script src="workshop/workshop-forms.js?v=20261018-corner-peel-2"></script><script src="workshop/workshop-cards.js?v=20261018-corner-peel-2"></script><script src="workshop/workshop-binding.js?v=20261018-corner-peel-2"></script><script src="workshop/workshop-parts.js?v=20261018-corner-peel-2"></script><script src="workshop/workshop-sheet.js?v=20261018-corner-peel-2"></script><script src="workshop/workshop.js?v=20261018-corner-peel-2"></script>
 </body>
 </html>

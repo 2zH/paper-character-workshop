@@ -6,9 +6,11 @@
 
 ## 入口
 
-- 工坊页面：`dist/workshop.html`。
+- 手揭版入口：`dist/workshop.html`，可以直接捏住整张面纸的四角揭起。
+- GitHub 初版：`dist/workshop-original.html`，保留首次发布时的独立纸框与操作。
 - 本地试用地址：[纸雕车卡工坊](http://127.0.0.1:4378/workshop.html)。
 - GitHub Pages：[纸雕车卡工坊](https://2zh.github.io/paper-character-workshop/)。首页直接打开当前工坊。
+- 初版入口：[GitHub 初版 · 独立纸框](https://2zh.github.io/paper-character-workshop/workshop-original.html)。
 - 在线视觉示例：[十个纸雕方向](https://2zh.github.io/paper-character-workshop/studies.html?v=1)。
 - 源码仓库：[2zH/paper-character-workshop](https://github.com/2zH/paper-character-workshop)。
 - 原十个视觉变体：`dist/index.html`，可用 `?v=1` 至 `?v=10` 选择。
@@ -73,6 +75,21 @@
 点击顶部「揭开纸面」，整张镂空面纸连同所有文字与切口一起抬起，露出下面的彩绘底纸。揭开时仍可移动组件或整组，窗口也同步调整。「盖回纸面」或 `Esc` 将整张纸合回原位；点击铅笔或双击底纸会先合回，再原位填写。打印始终使用合拢状态。
 
 揭开是临时查看状态，不改变角色数据、布局、组合或撤销记录。未铺底卡时按钮不可用；先「铺开底卡」，再自由拖入组件即可。
+
+
+## 用鼠标捏起纸角
+
+主入口为手揭版。在整卡任意一角停留，会出现轻微卷角与提示；按住纸角，向卡片内部慢慢拖动，面纸会从抓住的一角逐渐弯起，文字、切口和纸筋随同弯曲，下面的彩绘保持原位。松手后面纸缓缓落回；也可用 Escape 结束。角上的提示支持键盘焦点，按住空格或 Enter 临时揭起，松开后落回。
+
+抓纸角与抓组件是两种操作：拖纸角查看上下两层，拖组件继续自由拼装。原位填写时先完成填写，再捏角；揭角不会改动角色内容、组件布局或撤销历史。切换角色、改变查看尺寸或打印时，会先将面纸安全合回。
+
+顶部「揭开纸面」仍可把面纸保持在展开状态；按钮展开时，先「盖回纸面」再捏角。偏好减少动态效果时，直接跟随手势，松手立即回位。
+
+## 两个版本分别保留
+
+页眉可以切换「手揭版」与「GitHub 初版」。初版将首次发布到 GitHub Pages 的 679d368 的应用代码保存在 `dist/versions/github-first/workshop/`，保留每个组件独立纸框的结构；后续修改主入口不会替换该快照。两版共用人物、装备和纸纤维等静态素材。
+
+保留版第一次打开时复制当前浏览器中的角色库，之后两版分别保存；在两个标签页里试不同交互，不会用旧状态覆盖另一版的草稿。需要交换后续角色时，使用导出 / 导入 JSON。
 
 ## 把纸片组合起来
 
@@ -160,6 +177,7 @@
 - `dist/workshop/workshop-forms.js`：纸片上的五类详细表单与可选规则配置。
 - `dist/workshop/workshop-parts.js` / `workshop-parts.css`：立绘、资源条、属性、雷达、技能、装备及故事等单张纸片的渲染、尺寸与拆分。
 - `dist/workshop/workshop-layers.css`：桌面散片的镂空纸窗与彩绘底稿。
+- `dist/workshop/workshop-peel.js` / `workshop-peel.css`：纸角抓取、连续面纸弯曲、松手回落和手势清理。
 - `dist/workshop/workshop-sheet.js` / `workshop-sheet.css`：整卡连续面纸、共享开窗遮罩、文字与底画分层、实时几何同步与整张揭起动效。
 - `dist/workshop/workshop-cards.js` / `workshop-cards.css`：原分组纸雕组件与兼容渲染。
 - `dist/workshop/workshop.css`：工坊布局、操作区与打印样式。

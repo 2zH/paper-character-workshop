@@ -106,6 +106,7 @@
   function clearPaperSelection() { selectionVisible=false;selectedIds.clear();syncPaperSelection();if(document.activeElement?.closest('.paper-piece'))document.activeElement.blur();if(editingId){flushEdit();editingId=null;settingsId=null;renderBoard();persist();} }
   function focusPaper() { document.querySelector(`[data-module-id="${selectedId}"]`)?.focus({preventScroll:true}); }
   function renderBoard() {
+    window.WorkshopPeel?.cancel({immediate:true});
     const opened=new Map([...document.querySelectorAll('.paper-piece')].map(paper=>[paper.dataset.moduleId,[...paper.querySelectorAll('details[open]')].map(detail=>detail.className)]));
     bindingLayout=boardGeometry();
     $('#paper-board').classList.toggle('has-binding',!!bindingLayout);
@@ -164,6 +165,7 @@
   const clamp = (value,min,max) => Math.min(max,Math.max(min,value));
   // Peeling is a view of the two sheets, never a change to their saved placement.
   function setLayersOpen(open) {
+    window.WorkshopPeel?.cancel({immediate:true});
     document.body.classList.toggle('layers-open',open);
     const button=$('#layers-button'),note=$('#layers-note');
     if(button){button.textContent=open?'盖回纸面':'揭开纸面';button.title=open?'将整张镂空面纸合回彩绘底纸':'揭开整张面纸，窗口、纸筋和文字一起抬起';button.setAttribute('aria-pressed',String(open));}
@@ -177,7 +179,11 @@
       const held=new Set(drag.members.map(item=>item.id)),mounted=canDockPaper(drag);
       visible=visible.map(paper=>held.has(paper.id)?{...paper,mounted}:paper);
     }
-    window.WorkshopSheet.sync({board:$('#paper-board'),frame:bindingLayout?.frame||null,papers:visible,editingId});
+    const board=$('#paper-board'),frame=bindingLayout?.frame||null;
+    window.WorkshopSheet.sync({board,frame,papers:visible,editingId});
+    window.WorkshopPeel?.sync({board,frame,enabled:!editingId&&!drag&&!resizeDrag,
+      onStart:()=>{setLayersOpen(false);announce('已抓住面纸的一角，慢慢拖动揭开；松手会自然落回。');},
+      onEnd:()=>announce('面纸已落回原位，角色内容和布局保持不变。')});
   }
   function linkedPapers(id) {
     const paper=paperById(id);if(!paper)return [];
@@ -722,6 +728,7 @@
   document.addEventListener('blur',event=>{if(event.target.matches('[data-path]')){normalizeField(event.target);flushEdit();}},true);
   document.addEventListener('keydown',event=>{
     if(event.isComposing||$('dialog[open]'))return;
+    if(window.WorkshopPeel?.isActive())return;
     if(preview){if(event.key==='Escape')setLayersOpen(false);return;}
     const command=event.metaKey||event.ctrlKey;
     const rotation=!command&&!event.altKey&&(event.key.toLowerCase()==='a'||event.key.toLowerCase()==='d');
@@ -877,7 +884,7 @@
         current.status='draft';current.step=steps.findIndex(step=>step.type===state.module.type);
       }
       resizeDrag=null;render();persist();focusPaper();announce(cancelled?'已恢复原来的大小。':'纸片大小和位置已保存。');
-    }else resizeDrag=null;
+    }else {resizeDrag=null;syncCardSheet();}
   }
   function resizeWithKeyboard(factor) {
     const items=captureMembers();if(items.length>1){
@@ -937,7 +944,7 @@
       chooseModule(ended.id,{edit:!!repeated});
       if(repeated){suppressClickUntil=Date.now()+350;if(ended.fieldPath)document.querySelector(`[data-module-id="${ended.id}"] [data-inline-editor][data-path="${CSS.escape(ended.fieldPath)}"]`)?.focus({preventScroll:true});}
     }
-    drag=null;updateGroupSelection();
+    drag=null;updateGroupSelection();syncCardSheet();
   }
   document.addEventListener('pointerup',event=>{if(resizeDrag)endResize(event);else endDrag(event);});document.addEventListener('pointercancel',event=>{if(resizeDrag)endResize(event,true);else endDrag(event,true);});
   document.addEventListener('keydown',event=>{if(event.key==='Escape'&&drag)endDrag({pointerId:drag.pointerId},true);});

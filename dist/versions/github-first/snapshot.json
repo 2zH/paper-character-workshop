@@ -1,0 +1,97 @@
+{
+  "version": "github-first",
+  "label": "GitHub 初版 · 独立纸框",
+  "sourceCommit": "679d3684ceec749ee8ed5be270d1730550c417c3",
+  "sourcePage": "dist/workshop.html",
+  "sharedAssets": "../../../assets/ (CSS), assets/ (document)",
+  "notes": "Snapshot of the first GitHub Pages publication, with independent component paper frames. Application JavaScript is byte-identical to the source commit except for one isolated localStorage key constant in workshop.js. CSS changes only relative shared-asset URLs. The root-level HTML preserves document-relative artwork and SVG fragments, namespaces snapshot resources, and seeds this edition from current drafts only on its first open; subsequent saves are independent.",
+  "files": [
+    {
+      "path": "workshop/workshop.css",
+      "sourceSha256": "a744079dc25c0f484ff7d9132679e1700314c0ba1948fe926a3a57ed021c7cc5",
+      "snapshotSha256": "e5edd8e4e49bf74a103317bd90df3fe20ebdc23a0c8ddda42fdad19b37335e24",
+      "relocatedCssAssets": true
+    },
+    {
+      "path": "workshop/workshop-cards.css",
+      "sourceSha256": "eb9ffd89b136d9c48037304b7cdc95234d56709f364f9ca5e6c9eaab4f21e357",
+      "snapshotSha256": "0ae315606b497ec348452e77bf0e6e2297e97bb50a3ce32bd962e85ad9d3f87b",
+      "relocatedCssAssets": true
+    },
+    {
+      "path": "workshop/workshop-inline.css",
+      "sourceSha256": "73e0cc6c1ad926f759cb86b62c7680673caddbe740ee33e837a3ebcae1f2a606",
+      "snapshotSha256": "798e3b090953e895697cce5866297c9d23ae814d17955829a5391bedf6dedbfc",
+      "relocatedCssAssets": true
+    },
+    {
+      "path": "workshop/workshop-binding.css",
+      "sourceSha256": "fae394c8115d14561130630cd1e758e890ecfba1450d8de6f4b83f093beaa01c",
+      "snapshotSha256": "f803a76b58355aefc81098d0fe7f54e138fae38ecceb9829ea93bbee2d012423",
+      "relocatedCssAssets": true
+    },
+    {
+      "path": "workshop/workshop-composer.css",
+      "sourceSha256": "3812edf83cf827a16119b4abb0a1549a11fa805d2bf8221e5fb875f4ba31f6fb",
+      "snapshotSha256": "1b669e2381978fefb19801759bbf2f1c22a2d5253b12c7c71a3a7b2d9b63c15b",
+      "relocatedCssAssets": true
+    },
+    {
+      "path": "workshop/workshop-parts.css",
+      "sourceSha256": "6dae9bc22135d3c72a8c3732d66791057310443cbde3c83a77fca01720a468ab",
+      "snapshotSha256": "0fa5621871ea94ac5fa043f601f1c24ca87e3ecaf7039f18678c9998210ea122",
+      "relocatedCssAssets": true
+    },
+    {
+      "path": "workshop/workshop-layers.css",
+      "sourceSha256": "98e114f7805468d4f99ad66157194d6261bd0a15d5a4998bb513c7d4ff80a585",
+      "snapshotSha256": "d43055ac38a0b2307c39777664076539c74337f82c65e233c3b6551a700c2720",
+      "relocatedCssAssets": true
+    },
+    {
+      "path": "workshop/workshop-model.js",
+      "sourceSha256": "bf67f304ed32e6d30649094944a9073283fcdccde5d9af6d5665f95137888667",
+      "snapshotSha256": "bf67f304ed32e6d30649094944a9073283fcdccde5d9af6d5665f95137888667",
+      "relocatedCssAssets": false
+    },
+    {
+      "path": "workshop/workshop-forms.js",
+      "sourceSha256": "c9433eafdc7782bf882f7928188e0afe4bb4c03cf2d6bf7716bbd8aa652ea07a",
+      "snapshotSha256": "c9433eafdc7782bf882f7928188e0afe4bb4c03cf2d6bf7716bbd8aa652ea07a",
+      "relocatedCssAssets": false
+    },
+    {
+      "path": "workshop/workshop-cards.js",
+      "sourceSha256": "23fc73387196b589b35e498f7b3f84afa928c675e565642d6a9705ea7aee78f7",
+      "snapshotSha256": "23fc73387196b589b35e498f7b3f84afa928c675e565642d6a9705ea7aee78f7",
+      "relocatedCssAssets": false
+    },
+    {
+      "path": "workshop/workshop-binding.js",
+      "sourceSha256": "dd420e62594bd009a4ecae5160a709fa5e87b0c9105fed43f233cfe9e1b16cc1",
+      "snapshotSha256": "dd420e62594bd009a4ecae5160a709fa5e87b0c9105fed43f233cfe9e1b16cc1",
+      "relocatedCssAssets": false
+    },
+    {
+      "path": "workshop/workshop-parts.js",
+      "sourceSha256": "b030fe61ba6293f4246718e36735e945e11c5d1857bc57e66343e15f5b60e20b",
+      "snapshotSha256": "b030fe61ba6293f4246718e36735e945e11c5d1857bc57e66343e15f5b60e20b",
+      "relocatedCssAssets": false
+    },
+    {
+      "path": "workshop/workshop.js",
+      "sourceSha256": "c7fec7d37fadedfd37112aa19123a7091c106286e6304ce33c63d834ee6216fd",
+      "snapshotSha256": "639c0dea7c141be0f5fd915ca8a712e0d05a9d37f7e7843fbc7c9c7f89227790",
+      "relocatedCssAssets": false,
+      "isolatedStorageKey": true
+    }
+  ],
+  "page": "workshop-original.html",
+  "pageSha256": "cda156999ff19be5ce9e28b5b22a264e4d9f2ffbae28ef7dfe916dceb7a8d2d6",
+  "redirectSha256": "ccadbac34171c0b3d2ddfa1f8575dc55ad357ddfe45881211fcfdad0aac02dfa",
+  "storage": {
+    "sourceKey": "paper-character-workshop-v1",
+    "isolatedKey": "paper-character-workshop-github-first-v1",
+    "seedPolicy": "Copy current library only when the preserved edition has no storage record; never write to the current edition."
+  }
+}
